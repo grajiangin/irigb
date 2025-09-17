@@ -215,24 +215,24 @@ uint8_t t = 0;
 
 
 void loop() {
-  // NEW VIRTUAL DISPLAY BUFFER APPROACH:
-  // 1. Update virtual buffer with display content
-  display.print_display(0,0,0,t);
-  // display.set_seconds_led(true);
-  display.set_ntp_led(true);
+  // // NEW VIRTUAL DISPLAY BUFFER APPROACH:
+  // // 1. Update virtual buffer with display content
+  // display.print_display(0,0,0,t);
+  // // display.set_seconds_led(true);
+  // display.set_ntp_led(true);
   
-  // 2. Transfer virtual buffer to hardware display
-  display.display();
+  // // 2. Transfer virtual buffer to hardware display
+  // display.display();
   
-  delay(500);
+  // delay(500);
   
-  // Update virtual buffer again
-  display.set_ntp_led(false);
+  // // Update virtual buffer again
+  // display.set_ntp_led(false);
   
-  // Transfer to hardware
-  display.display();
+  // // Transfer to hardware
+  // display.display();
   
-  // debug_leds();
+  // // debug_leds();
   t++;
   delay(500);
 }
