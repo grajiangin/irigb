@@ -36,13 +36,8 @@ private:
     void begin();
     void setupDisplay(bool active, byte intensity);
     void clearDisplay();
-    
 
 public:
-
-
-
-
     // Constructor
     Display(byte dataPin, byte clockPin, byte strobePin);
     
