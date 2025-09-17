@@ -5,6 +5,7 @@
 #include "pins.h"
 
 #include "display.h"
+#include "irig.h"
 
 
 // SPI configuration for ENC28J60
@@ -121,6 +122,8 @@ const unsigned long STATUS_CHECK_INTERVAL = 5000; // Check every 5 seconds
 
 void setup() {
   Serial.begin(115200);
+  init_irig();
+  
   // Display is now initialized automatically in its constructor
   // // Test all 10 digits with demonstration
   // Serial.println("Testing 10-digit seven-segment display:");
