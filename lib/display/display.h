@@ -3,6 +3,12 @@
 
 #include <Arduino.h>
 
+
+// Display pins
+#define DISP_DATA 7
+#define DISP_CLK 15
+#define DISP_STB 16
+
 // LED bit positions based on GRID mapping
 #define LED_SECONDS  0  // GRID1 -> bit 0
 #define LED_MINUTE   1  // GRID2 -> bit 1  
@@ -70,5 +76,7 @@ public:
     void debug_segments();
     void test_address(int address, int digit_mask);
 };
+extern Display display;
+void init_display();
 
 #endif // DISPLAY_H

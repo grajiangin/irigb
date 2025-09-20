@@ -379,3 +379,8 @@ void Display::off() {
   // All other LEDs remain off (cleared by clearVirtualBuffer)
   // All digits remain blank (cleared by clearVirtualBuffer)
 }
+
+// Display display(DISP_DATA, DISP_CLK, DISP_STB);
+void init_display() {
+ 
+}
