@@ -1,14 +1,6 @@
 #ifndef PINS_H
 #define PINS_H
 
-// Ethernet pins
-#define ETH_MOSI 39
-#define ETH_MISO 37
-#define ETH_SCLK 41
-#define ETH_CS 38
-#define ETH_INT 36
-#define ETH_CLK_OUT 35
-#define ETH_RST 40
 
 // Display pins
 #define DISP_DATA 7
