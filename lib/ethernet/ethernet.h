@@ -8,6 +8,7 @@
 #include <Arduino.h>
 #include <ESP32-ENC28J60.h>
 #include "driver/spi_master.h"
+#include "settings.h"
 
 
 #define SPI_CLOCK_MHZ 8  // Minimum 8MHz for ENC28J60 revision B5+
@@ -23,10 +24,15 @@
 // New modular functions
 bool eth_init();
 bool eth_dhcp();
-bool eth_static(IPAddress ip, IPAddress mask);
+bool eth_static(IPAddress ip, IPAddress mask, IPAddress gateway, IPAddress dns);
+bool eth_configure_network(Settings* settings);
 bool eth_status();
 bool eth_link_up();  // Helper function to get current link status
 void eth_update_link_status();
+
+// Ethernet monitoring task functions
+bool eth_start_monitoring(Settings* settings);
+void eth_stop_monitoring();
 
 // Legacy function for backward compatibility
 bool init_ethernet();

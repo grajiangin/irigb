@@ -18,9 +18,24 @@
 #include "driver/spi_master.h"
 #include "ESP32-ENC28J60.h"
 #include "esp_event.h"
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 
 // Global variable to track link status (workaround for library bug)
 static bool _custom_eth_link_up = false;
+
+// Ethernet monitoring task variables
+static TaskHandle_t _eth_monitor_task_handle = NULL;
+static bool _eth_monitor_running = false;
+
+// Current network configuration tracking
+static struct {
+    bool dhcp;
+    String ip;
+    String subnet;
+    String gateway;
+    String dns;
+} _current_network_config;
 
 // Custom event handler to track link status changes
 void custom_eth_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data) {
@@ -116,24 +131,134 @@ bool eth_dhcp() {
     }
 }
 
-bool eth_static(IPAddress ip, IPAddress mask) {
+bool eth_static(IPAddress ip, IPAddress mask, IPAddress gateway, IPAddress dns) {
     Serial.println("Configuring static IP...");
     Serial.print("IP: ");
     Serial.println(ip);
     Serial.print("Subnet Mask: ");
     Serial.println(mask);
-    
-    if (ETH.config(ip, mask, IPAddress(0, 0, 0, 0))) {
+    Serial.print("Gateway: ");
+    Serial.println(gateway);
+    Serial.print("DNS: ");
+    Serial.println(dns);
+
+    if (ETH.config(ip, gateway, mask, dns)) {
         Serial.println("✓ Static IP configuration successful");
         Serial.print("  IP Address: ");
         Serial.println(ETH.localIP());
         Serial.print("  Subnet Mask: ");
         Serial.println(ETH.subnetMask());
+        Serial.print("  Gateway: ");
+        Serial.println(ETH.gatewayIP());
+        Serial.print("  DNS Server: ");
+        Serial.println(ETH.dnsIP());
         return true;
     } else {
         Serial.println("✗ Static IP configuration failed");
         return false;
     }
+}
+
+bool eth_configure_network(Settings* settings) {
+    Serial.println("Configuring network using settings...");
+
+    if (settings->network.dhcp) {
+        Serial.println("Using DHCP configuration");
+        return eth_dhcp();
+    } else {
+        Serial.println("Using static IP configuration");
+        IPAddress ip;
+        IPAddress mask;
+        IPAddress gateway;
+        IPAddress dns;
+
+        if (!ip.fromString(settings->network.ip)) {
+            Serial.println("✗ Invalid IP address format");
+            return false;
+        }
+
+        if (!mask.fromString(settings->network.subnet)) {
+            Serial.println("✗ Invalid subnet mask format");
+            return false;
+        }
+
+        if (!gateway.fromString(settings->network.gateway)) {
+            Serial.println("✗ Invalid gateway address format");
+            return false;
+        }
+
+        if (!dns.fromString(settings->network.dns)) {
+            Serial.println("✗ Invalid DNS server address format");
+            return false;
+        }
+
+        return eth_static(ip, mask, gateway, dns);
+    }
+}
+
+// Helper function to check if network settings have changed
+static bool eth_network_settings_changed(Settings* settings) {
+    return (_current_network_config.dhcp != settings->network.dhcp ||
+            _current_network_config.ip != settings->network.ip ||
+            _current_network_config.subnet != settings->network.subnet ||
+            _current_network_config.gateway != settings->network.gateway ||
+            _current_network_config.dns != settings->network.dns);
+}
+
+// Helper function to update current network config tracking
+static void eth_update_current_config(Settings* settings) {
+    _current_network_config.dhcp = settings->network.dhcp;
+    _current_network_config.ip = settings->network.ip;
+    _current_network_config.subnet = settings->network.subnet;
+    _current_network_config.gateway = settings->network.gateway;
+    _current_network_config.dns = settings->network.dns;
+}
+
+// Ethernet monitoring task function
+static void eth_monitor_task(void *parameter) {
+    Settings* settings = (Settings*)parameter;
+    TickType_t last_wake_time = xTaskGetTickCount();
+
+    Serial.println("Ethernet monitoring task started");
+
+    while (_eth_monitor_running) {
+        // Check ethernet link status
+        eth_update_link_status();
+
+        // Check for network configuration changes via flag
+        if (settings->getNetworkChangesFlag()) {
+            Serial.println("Network changes flag detected, reloading settings...");
+
+            // Reload settings to get the updated network configuration
+            if (settings->load()) {
+                if (eth_network_settings_changed(settings)) {
+                    Serial.println("Network configuration changed, reconfiguring...");
+
+                    // Update current config tracking
+                    eth_update_current_config(settings);
+
+                    // Reconfigure network
+                    if (!eth_configure_network(settings)) {
+                        Serial.println("Failed to reconfigure network with new settings");
+                    }
+                } else {
+                    Serial.println("Network changes flag was set but no actual changes detected");
+                }
+            } else {
+                Serial.println("Failed to reload settings");
+            }
+
+            // Clear the changes flag
+            settings->setNetworkChangesFlag(false);
+            Serial.println("Network changes flag cleared");
+        }
+
+        // Wait for next iteration (100ms)
+        vTaskDelayUntil(&last_wake_time, pdMS_TO_TICKS(100));
+    }
+
+    Serial.println("Ethernet monitoring task stopped");
+    vTaskDelete(NULL);
 }
 
 // Function to manually update link status
@@ -188,4 +313,53 @@ bool init_ethernet() {
         return eth_dhcp();
     }
     return false;
+}
+
+// Start ethernet monitoring task
+bool eth_start_monitoring(Settings* settings) {
+    if (_eth_monitor_running) {
+        Serial.println("Ethernet monitoring task already running");
+        return true;
+    }
+
+    // Initialize current network config tracking
+    eth_update_current_config(settings);
+
+    _eth_monitor_running = true;
+
+    // Create the monitoring task
+    BaseType_t result = xTaskCreate(
+        eth_monitor_task,           // Task function
+        "eth_monitor",              // Task name
+        4096,                       // Stack size (bytes)
+        settings,                   // Task parameter
+        1,                          // Task priority (low priority)
+        &_eth_monitor_task_handle   // Task handle
+    );
+
+    if (result == pdPASS) {
+        Serial.println("✓ Ethernet monitoring task started successfully");
+        return true;
+    } else {
+        Serial.println("✗ Failed to create ethernet monitoring task");
+        _eth_monitor_running = false;
+        return false;
+    }
+}
+
+// Stop ethernet monitoring task
+void eth_stop_monitoring() {
+    if (!_eth_monitor_running) {
+        Serial.println("Ethernet monitoring task not running");
+        return;
+    }
+
+    _eth_monitor_running = false;
+
+    // Wait for the task to finish
+    if (_eth_monitor_task_handle != NULL) {
+        vTaskDelete(_eth_monitor_task_handle);
+        _eth_monitor_task_handle = NULL;
+        Serial.println("✓ Ethernet monitoring task stopped");
+    }
 }

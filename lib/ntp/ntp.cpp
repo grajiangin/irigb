@@ -12,6 +12,7 @@ long _timeOffset = 3600; // 1 hour offset
 unsigned long _updateInterval = 60000; // 60 seconds
 unsigned long _currentEpoc = 0;
 unsigned long _lastUpdate = 0;
+unsigned long _currentMilliseconds = 0;
 byte _packetBuffer[NTP_PACKET_SIZE];
 
 void sendNTPPacket() {
@@ -72,6 +73,14 @@ bool ntp_forceUpdate() {
     // this is NTP time (seconds since Jan 1 1900):
     unsigned long secsSince1900 = highWord << 16 | lowWord;
 
+    // Extract fractional seconds (milliseconds)
+    unsigned long fracHighWord = word(_packetBuffer[44], _packetBuffer[45]);
+    unsigned long fracLowWord = word(_packetBuffer[46], _packetBuffer[47]);
+    unsigned long fracSeconds = fracHighWord << 16 | fracLowWord;
+    
+    // Convert fractional seconds to milliseconds (multiply by 1000 and divide by 2^32)
+    _currentMilliseconds = (fracSeconds * 1000ULL) >> 32;
+
     _currentEpoc = secsSince1900 - SEVENZYYEARS;
 
     return true;  // return true after successful update
@@ -96,19 +105,6 @@ unsigned long ntp_getEpochTime() {
            ((millis() - _lastUpdate) / 1000); // Time since last update
 }
 
-String ntp_getFormattedTime() {
-    unsigned long rawTime = ntp_getEpochTime();
-    unsigned long hours = (rawTime % 86400L) / 3600;
-    String hoursStr = hours < 10 ? "0" + String(hours) : String(hours);
-
-    unsigned long minutes = (rawTime % 3600) / 60;
-    String minuteStr = minutes < 10 ? "0" + String(minutes) : String(minutes);
-
-    unsigned long seconds = rawTime % 60;
-    String secondStr = seconds < 10 ? "0" + String(seconds) : String(seconds);
-
-    return hoursStr + ":" + minuteStr + ":" + secondStr;
-}
 
 
 
@@ -125,54 +121,36 @@ void ntp_setUpdateInterval(unsigned long updateInterval) {
     _updateInterval = updateInterval;
 }
 
-// Calculate day of year (1-366) from epoch time
-int getDayOfYear(unsigned long epochTime) {
-    // Adjust for timezone offset to get local time
-    unsigned long localTime = epochTime;
-
-    // Calculate year
-    unsigned long days = localTime / 86400UL;
-    int year = 1970;
-    while (days >= 365) {
-        if ((year % 4 == 0 && year % 100 != 0) || year % 400 == 0) {
-            if (days >= 366) {
-                days -= 366;
-                year++;
-            } else {
-                break;
-            }
-        } else {
-            days -= 365;
-            year++;
-        }
-    }
-
-    // Calculate day of year (1-based)
-    int dayOfYear = days + 1;
-
-    // Adjust for leap year if February hasn't passed yet
-    bool isLeapYear = (year % 4 == 0 && year % 100 != 0) || year % 400 == 0;
-    if (!isLeapYear && dayOfYear > 59) {
-        dayOfYear--; // Non-leap year, February has 28 days
-    }
-
-    return dayOfYear;
-}
 
 NTPTime ntp_get_time() {
-    NTPTime timeStruct;
-
-    // Get current time components
+    NTPTime timeStruct = {0}; // Initialize to zero
     unsigned long epochTime = ntp_getEpochTime();
-    unsigned long rawTime = epochTime;
+    // Extract seconds, minutes, hours
+    timeStruct.second = epochTime % 60;
+    unsigned long remainingSeconds = epochTime / 60; // Minutes + hours + days
+    timeStruct.minute = remainingSeconds % 60;
+    remainingSeconds /= 60; // Hours + days
+    timeStruct.hour = remainingSeconds % 24;
 
     // Calculate day of year
-    timeStruct.day = getDayOfYear(epochTime);
+    unsigned long daysSinceEpoch = remainingSeconds / 24;
+    int year = 1970;
+    int dayOfYear = 0;
 
-    // Calculate hours, minutes, seconds
-    timeStruct.hour = (rawTime % 86400L) / 3600;
-    timeStruct.minute = (rawTime % 3600) / 60;
-    timeStruct.second = rawTime % 60;
+    while (daysSinceEpoch > 0) {
+        int isLeapYear = (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+        unsigned long daysInYear = isLeapYear ? 366 : 365;
+
+        if (daysSinceEpoch < daysInYear) {
+            dayOfYear = daysSinceEpoch + 1; // 1-based for IRIG-B
+            break;
+        }
+        daysSinceEpoch -= daysInYear;
+        year++;
+    }
+    timeStruct.day = dayOfYear+1;
+    timeStruct.year = year;
+    timeStruct.millisecond = _currentMilliseconds;
 
     return timeStruct;
 }
@@ -181,12 +159,7 @@ extern void ntp_hanlder( NTPTime time);
 void ntp_task(void *param) {
     for (;;) {
         if (ntp_update()) {
-            Serial.print("NTP Time: ");
-            Serial.println(ntp_getFormattedTime());
-
-            // Get current time components using the new function
             NTPTime currentTime = ntp_get_time();
-
             ntp_hanlder(currentTime);
         }
         delay(1000);

@@ -13,6 +13,8 @@ struct NTPTime {
     int hour;     // Hour (0-23)
     int minute;   // Minute (0-59)
     int second;   // Second (0-59)
+    int millisecond; // Millisecond (0-999)
+    int year;     // Year (e.g., 2024)
 };
 
 // NTP functions
@@ -21,7 +23,6 @@ void ntp_begin(unsigned int port);
 bool ntp_update();
 bool ntp_forceUpdate();
 bool ntp_isTimeSet();
-String ntp_getFormattedTime();
 unsigned long ntp_getEpochTime();
 NTPTime ntp_get_time();
 void ntp_setTimeOffset(int timeOffset);

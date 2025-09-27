@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 32px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 32px;
+            font-size: 2.2em;
+            font-weight: 600;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        /* Tab Navigation */
+        .tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 32px;
+            gap: 4px;
+        }
+
+        .tab-button {
+            flex: 1;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .tab-button.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-button:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Dashboard */
+        .card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 32px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .card h3 {
+            margin: 0 0 16px 0;
+            font-size: 1.1em;
+            font-weight: 600;
+            opacity: 0.9;
+        }
+
+        .time-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin: 24px 0;
+        }
+
+        .day-display {
+            font-size: 3.5em;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.4);
+            letter-spacing: 2px;
+            color: #64B5F6;
+        }
+
+        .time-separator {
+            font-size: 3.5em;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.6);
+            text-shadow: 0 4px 8px rgba(0,0,0,0.4);
+        }
+
+        .time-display {
+            font-size: 3.5em;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.4);
+            letter-spacing: 3px;
+        }
+
+        .status-leds {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .led-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .led {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .led.active {
+            background: #4CAF50;
+            box-shadow: 0 0 15px rgba(76, 175, 80, 0.8);
+            border-color: #4CAF50;
+        }
+
+        .led.inactive {
+            background: #888;
+            box-shadow: 0 0 15px rgba(136, 136, 136, 0.5);
+            border-color: #888;
+        }
+
+        .led.warning {
+            background: #ff9800;
+            box-shadow: 0 0 15px rgba(255, 152, 0, 0.8);
+            border-color: #ff9800;
+        }
+
+        .led-label {
+            font-size: 0.8em;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Channels Grid */
+        .channels-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .channel-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .channel-item label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            opacity: 0.9;
+        }
+
+        .channel-item select {
+            width: 100%;
+            padding: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            color: white;
+            font-size: 0.9em;
+        }
+
+        .channel-item select:focus {
+            outline: none;
+            border-color: #64B5F6;
+            box-shadow: 0 0 0 2px rgba(100, 181, 246, 0.2);
+        }
+
+        .channel-item select option {
+            background: #1a1a1a;
+            color: white;
+        }
+
+        /* Master Enable Section */
+        .master-enable-section {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            text-align: center;
+        }
+
+        /* Switch Styles */
+        .switch-container {
+            display: inline-block;
+            position: relative;
+            margin-right: 1rem;
+        }
+
+        .switch-container.large {
+            transform: scale(1.2);
+        }
+
+        .switch-input {
+            display: none;
+        }
+
+        .switch-label {
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+            background: #444;
+            border-radius: 12px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .switch-slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+        }
+
+        .switch-input:checked + .switch-label {
+            background: #4CAF50;
+        }
+
+        .switch-input:checked + .switch-label .switch-slider {
+            transform: translateX(26px);
+        }
+
+
+        /* Configuration Sections */
+        .config-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .config-section h3 {
+            margin: 0 0 20px 0;
+            font-size: 1.2em;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 12px;
+        }
+
+        /* Radio buttons */
+        .radio-group {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: background 0.2s ease;
+        }
+
+        .radio-option:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .radio-option input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            margin: 0;
+            accent-color: #4CAF50;
+        }
+
+        /* Form Groups */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            font-size: 0.9em;
+            font-weight: 500;
+            margin-bottom: 6px;
+            opacity: 0.9;
+        }
+
+        .form-group input {
+            padding: 12px 16px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #4CAF50;
+            background: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+        }
+
+        /* Static IP toggle */
+        #static-ip-config {
+            display: none;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Buttons */
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .btn.primary {
+            background: #4CAF50;
+            border-color: #4CAF50;
+        }
+
+        .btn.primary:hover {
+            background: #45a049;
+            border-color: #45a049;
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin: 16px 0;
+            display: none;
+            font-weight: 500;
+            animation: slideIn 0.3s ease;
+        }
+
+        .alert.success {
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid rgba(76, 175, 80, 0.4);
+            color: #81c784;
+        }
+
+        .alert.error {
+            background: rgba(244, 67, 54, 0.2);
+            border: 1px solid rgba(244, 67, 54, 0.4);
+            color: #ef5350;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            opacity: 0.7;
+            font-size: 0.9em;
+        }
+
+        /* Connection status */
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 500;
+            z-index: 1000;
+        }
+
+        .connection-status.connected {
+            background: rgba(76, 175, 80, 0.9);
+            color: white;
+        }
+
+        .connection-status.disconnected {
+            background: rgba(244, 67, 54, 0.9);
+            color: white;
+        }
+
+        /* Loading state */
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .loading::after {
+            content: " ...";
+            animation: dots 1.5s infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: " ."; }
+            40% { content: " .."; }
+            60%, 100% { content: " ..."; }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 0 10px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .radio-group {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .time-display {
+                font-size: 2.2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Connection Status -->
+
+
+    <div class="container">
+        
+
+        <!-- Tab Navigation -->
+        <div class="tabs">
+            <button class="tab-button active" onclick="showTab('dashboard')">Dashboard</button>
+            <button class="tab-button" onclick="showTab('network')">Network</button>
+            <button class="tab-button" onclick="showTab('ntp')">NTP Settings</button>
+            <button class="tab-button" onclick="showTab('channels')">IRIG Channels</button>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content active">
+            <div class="card" style="text-align: center; max-width: 600px; margin: 0 auto;">
+                <div class="time-container">
+                    <div id="current-date" class="day-display">--</div>
+                    <div class="time-separator">-</div>
+                    <div id="current-time" class="time-display">--:--:--</div>
+                </div>
+                
+                <!-- Status LEDs -->
+                <div class="status-leds" style="margin-top: 2rem;">
+                    <div class="led-item">
+                        <div id="enabled-led" class="led inactive"></div>
+                        <span class="led-label">Enabled</span>
+                    </div>
+                    <div class="led-item">
+                        <div id="link-led" class="led inactive"></div>
+                        <span class="led-label">Link</span>
+                    </div>
+                    <div class="led-item">
+                        <div id="ntp-led" class="led inactive"></div>
+                        <span class="led-label">NTP Sync</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Network Configuration Tab -->
+        <div id="network" class="tab-content">
+            <div class="config-section">
+                <h3>Network Configuration</h3>
+
+                <div class="radio-group">
+                    <div class="radio-option" onclick="setNetworkMode(true)">
+                        <input type="radio" id="dhcp" name="network-mode" value="dhcp" checked>
+                        <label for="dhcp">DHCP (Automatic)</label>
+                    </div>
+                    <div class="radio-option" onclick="setNetworkMode(false)">
+                        <input type="radio" id="static" name="network-mode" value="static">
+                        <label for="static">Static IP</label>
+                    </div>
+                </div>
+
+                <div id="static-ip-config">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="ip">IP Address</label>
+                            <input type="text" id="ip" placeholder="192.168.1.100">
+                        </div>
+                        <div class="form-group">
+                            <label for="subnet">Subnet Mask</label>
+                            <input type="text" id="subnet" placeholder="255.255.255.0">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="gateway">Gateway</label>
+                            <input type="text" id="gateway" placeholder="192.168.1.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="dns">DNS Server</label>
+                            <input type="text" id="dns" placeholder="8.8.8.8">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn primary" onclick="saveNetworkConfig()">💾 Save Network Settings</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- NTP Configuration Tab -->
+        <div id="ntp" class="tab-content">
+            <div class="config-section">
+                <h3>NTP Server Configuration</h3>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="ntpServer">NTP Server</label>
+                        <input type="text" id="ntpServer" placeholder="pool.ntp.org">
+                    </div>
+                    <div class="form-group">
+                        <label for="ntpPort">NTP Port</label>
+                        <input type="number" id="ntpPort" value="123" min="1" max="65535">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="timeOffset">Time Offset (hours)</label>
+                        <input type="number" id="timeOffset" value="0" min="-24" max="24" step="1">
+                        <small>Range: -24 to +24 hours</small>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn primary" onclick="saveNTPConfig()">💾 Save NTP Settings</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- IRIG Channels Configuration Tab -->
+        <div id="channels" class="tab-content">
+            <div class="config-section">
+                <h3>IRIG Channel Configuration</h3>
+                <p style="opacity: 0.8; margin-bottom: 1.5rem;">Configure the output mode for each of the 8 IRIG channels.</p>
+
+                <!-- Master Enable Switch -->
+                <div class="master-enable-section">
+                    <div class="form-group" style="text-align: center;">
+                        <label for="masterEnabled" style="display: block; margin-bottom: 1rem; font-size: 1.1em; font-weight: 600;">Master Enable</label>
+                        <div class="switch-container large" style="margin-bottom: 0.5rem;">
+                            <input type="checkbox" id="masterEnabled" class="switch-input">
+                            <label for="masterEnabled" class="switch-label">
+                                <span class="switch-slider"></span>
+                            </label>
+                        </div>
+                        <small style="display: block; opacity: 0.8;">Enable/disable the entire IRIG-B Time Server system</small>
+                    </div>
+                </div>
+
+                <div class="channels-grid">
+                    <div class="channel-item">
+                        <label for="channel_1_mode">Channel 1</label>
+                        <select id="channel_1_mode">
+                            <option value="0">B000/B120</option>
+                            <option value="1">B001/B121</option>
+                            <option value="2">B002/B122</option>
+                            <option value="3">B003/B123</option>
+                            <option value="4">B004/B124</option>
+                            <option value="5">B005/B125</option>
+                            <option value="6">B006/B126</option>
+                            <option value="7">B007/B127</option>
+                            <option value="8">Disabled</option>
+                        </select>
+                    </div>
+
+                    <div class="channel-item">
+                        <label for="channel_2_mode">Channel 2</label>
+                        <select id="channel_2_mode">
+                            <option value="0">B000/B120</option>
+                            <option value="1">B001/B121</option>
+                            <option value="2">B002/B122</option>
+                            <option value="3">B003/B123</option>
+                            <option value="4">B004/B124</option>
+                            <option value="5">B005/B125</option>
+                            <option value="6">B006/B126</option>
+                            <option value="7">B007/B127</option>
+                            <option value="8">Disabled</option>
+                        </select>
+                    </div>
+
+                    <div class="channel-item">
+                        <label for="channel_3_mode">Channel 3</label>
+                        <select id="channel_3_mode">
+                            <option value="0">B000/B120</option>
+                            <option value="1">B001/B121</option>
+                            <option value="2">B002/B122</option>
+                            <option value="3">B003/B123</option>
+                            <option value="4">B004/B124</option>
+                            <option value="5">B005/B125</option>
+                            <option value="6">B006/B126</option>
+                            <option value="7">B007/B127</option>
+                            <option value="8">Disabled</option>
+                        </select>
+                    </div>
+
+                    <div class="channel-item">
+                        <label for="channel_4_mode">Channel 4</label>
+                        <select id="channel_4_mode">
+                            <option value="0">B000/B120</option>
+                            <option value="1">B001/B121</option>
+                            <option value="2">B002/B122</option>
+                            <option value="3">B003/B123</option>
+                            <option value="4">B004/B124</option>
+                            <option value="5">B005/B125</option>
+                            <option value="6">B006/B126</option>
+                            <option value="7">B007/B127</option>
+                            <option value="8">Disabled</option>
+                        </select>
+                    </div>
+
+                    <div class="channel-item">
+                        <label for="channel_5_mode">Channel 5</label>
+                        <select id="channel_5_mode">
+                            <option value="0">B000/B120</option>
+                            <option value="1">B001/B121</option>
+                            <option value="2">B002/B122</option>
+                            <option value="3">B003/B123</option>
+                            <option value="4">B004/B124</option>
+                            <option value="5">B005/B125</option>
+                            <option value="6">B006/B126</option>
+                            <option value="7">B007/B127</option>
+                            <option value="8">Disabled</option>
+                        </select>
+                    </div>
+
+                    <div class="channel-item">
+                        <label for="channel_6_mode">Channel 6</label>
+                        <select id="channel_6_mode">
+                            <option value="0">B000/B120</option>
+                            <option value="1">B001/B121</option>
+                            <option value="2">B002/B122</option>
+                            <option value="3">B003/B123</option>
+                            <option value="4">B004/B124</option>
+                            <option value="5">B005/B125</option>
+                            <option value="6">B006/B126</option>
+                            <option value="7">B007/B127</option>
+                            <option value="8">Disabled</option>
+                        </select>
+                    </div>
+
+                    <div class="channel-item">
+                        <label for="channel_7_mode">Channel 7</label>
+                        <select id="channel_7_mode">
+                            <option value="0">B000/B120</option>
+                            <option value="1">B001/B121</option>
+                            <option value="2">B002/B122</option>
+                            <option value="3">B003/B123</option>
+                            <option value="4">B004/B124</option>
+                            <option value="5">B005/B125</option>
+                            <option value="6">B006/B126</option>
+                            <option value="7">B007/B127</option>
+                            <option value="8">Disabled</option>
+                        </select>
+                    </div>
+
+                    <div class="channel-item">
+                        <label for="channel_8_mode">Channel 8</label>
+                        <select id="channel_8_mode">
+                            <option value="0">B000/B120</option>
+                            <option value="1">B001/B121</option>
+                            <option value="2">B002/B122</option>
+                            <option value="3">B003/B123</option>
+                            <option value="4">B004/B124</option>
+                            <option value="5">B005/B125</option>
+                            <option value="6">B006/B126</option>
+                            <option value="7">B007/B127</option>
+                            <option value="8">Disabled</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn primary" onclick="saveChannelsConfig()">💾 Save Channel Settings</button>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Alert messages -->
+        <div id="alert" class="alert"></div>
+
+        <div class="footer">
+            
+        </div>
+    </div>
+
+    <script>
+        let websocket = null;
+        let currentTab = 'dashboard';
+        let configLoaded = false;
+
+        // Tab switching
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+            currentTab = tabName;
+
+            // Load tab-specific data if WebSocket is connected
+            if (websocket && websocket.readyState === WebSocket.OPEN) {
+                if (tabName === 'network' || tabName === 'ntp') {
+                    loadConfig();
+                }
+            }
+        }
+
+        // WebSocket connection
+        function connectWebSocket() {
+            if (websocket) {
+                websocket.close();
+            }
+
+        
+
+            websocket = new WebSocket('ws://' + window.location.host + '/ws');
+
+            websocket.onopen = function(event) {
+                console.log('WebSocket connected');
+            
+
+                // Update link LED
+                updateLinkLED();
+
+                // Load configuration when connected
+                loadConfig();
+            };
+
+            websocket.onmessage = function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    handleWebSocketMessage(data);
+                } catch (e) {
+                    console.error('Failed to parse WebSocket data:', e);
+                }
+            };
+
+            websocket.onclose = function(event) {
+                console.log('WebSocket disconnected');
+          
+
+                // Update link LED
+                updateLinkLED();
+
+                // Auto reconnect after 3 seconds
+                setTimeout(connectWebSocket, 3000);
+            };
+
+            websocket.onerror = function(error) {
+                console.error('WebSocket error:', error);
+              
+
+                // Update link LED
+                updateLinkLED();
+            };
+        }
+
+        // Handle incoming WebSocket messages
+        function handleWebSocketMessage(data) {
+            if (data.type === 'time') {
+                updateTimeDisplay(data);
+            } else if (data.type === 'config') {
+                updateConfigDisplay(data);
+                configLoaded = true;
+            } else if (data.type === 'configSaved') {
+                handleConfigSaved(data);
+            } else if (data.type === 'leds') {
+                updateLEDs(data);
+            }
+        }
+
+        function updateTimeDisplay(data) {
+            if (data.hour !== undefined && data.minute !== undefined && data.second !== undefined) {
+                const timeString = `${data.hour.toString().padStart(2, '0')}:${data.minute.toString().padStart(2, '0')}:${data.second.toString().padStart(2, '0')}`;
+                document.getElementById('current-time').textContent = timeString;
+            }
+            if (data.day !== undefined) {
+                document.getElementById('current-date').textContent = data.day;
+            }
+        }
+
+        function updateLEDs(data) {
+            // Update enabled LED
+            const enabledLed = document.getElementById('enabled-led');
+            if (data.enabled !== undefined) {
+                enabledLed.className = data.enabled ? 'led active' : 'led inactive';
+            }
+
+            // Update NTP sync LED
+            const ntpLed = document.getElementById('ntp-led');
+            if (data.ntp_sync !== undefined) {
+                ntpLed.className = data.ntp_sync ? 'led active' : 'led inactive';
+            }
+        }
+
+        function updateLinkLED() {
+            // Update link LED based on WebSocket connection status
+            const linkLed = document.getElementById('link-led');
+            // const connectionStatus = document.getElementById('connection-status');
+            
+            if (websocket && websocket.readyState === WebSocket.OPEN) {
+                linkLed.className = 'led active';
+            } else {
+                linkLed.className = 'led inactive';
+            }
+        }
+
+        function updateConfigDisplay(config) {
+            // Update network config
+            document.getElementById('dhcp').checked = config.dhcp;
+            document.getElementById('static').checked = !config.dhcp;
+
+            document.getElementById('ip').value = config.ip || '';
+            document.getElementById('subnet').value = config.subnet || '';
+            document.getElementById('gateway').value = config.gateway || '';
+            document.getElementById('dns').value = config.dns || '';
+
+            // Update NTP config
+            document.getElementById('ntpServer').value = config.ntpServer || '';
+            document.getElementById('ntpPort').value = config.ntpPort || 123;
+
+            // Update time offset config
+            document.getElementById('timeOffset').value = config.timeOffset || 0;
+
+            // Update master enabled setting
+            document.getElementById('masterEnabled').checked = config.enabled || false;
+
+            // Update channel modes
+            for (let i = 1; i <= 8; i++) {
+                const channelKey = `channel_${i}_mode`;
+                if (config[channelKey] !== undefined) {
+                    document.getElementById(channelKey).value = config[channelKey];
+                }
+            }
+
+            // Show/hide static IP config
+            setNetworkMode(config.dhcp);
+        }
+
+        function handleConfigSaved(data) {
+            if (data.success) {
+                showAlert('Configuration saved successfully!', 'success');
+                // Reload configuration to reflect saved changes
+                setTimeout(() => {
+                    loadConfig();
+                }, 500);
+            } else {
+                showAlert('Failed to save configuration: ' + (data.message || 'Unknown error'), 'error');
+            }
+        }
+
+        // Load configuration via WebSocket
+        function loadConfig() {
+            if (websocket && websocket.readyState === WebSocket.OPEN) {
+                websocket.send(JSON.stringify({ action: 'getConfig' }));
+            }
+        }
+
+        // Network mode toggle
+        function setNetworkMode(isDHCP) {
+            document.getElementById('dhcp').checked = isDHCP;
+            document.getElementById('static').checked = !isDHCP;
+            document.getElementById('static-ip-config').style.display = isDHCP ? 'none' : 'block';
+        }
+
+        // Save network configuration
+        function saveNetworkConfig() {
+            if (!websocket || websocket.readyState !== WebSocket.OPEN) {
+                showAlert('WebSocket not connected', 'error');
+                return;
+            }
+
+            const config = {
+                action: 'saveConfig',
+                dhcp: document.getElementById('dhcp').checked,
+                ip: document.getElementById('ip').value,
+                subnet: document.getElementById('subnet').value,
+                gateway: document.getElementById('gateway').value,
+                dns: document.getElementById('dns').value,
+                ntpServer: document.getElementById('ntpServer').value,
+                ntpPort: parseInt(document.getElementById('ntpPort').value) || 123
+            };
+
+            websocket.send(JSON.stringify(config));
+            showAlert('Saving configuration...', 'success');
+        }
+
+        // Save NTP configuration
+        function saveNTPConfig() {
+            if (!websocket || websocket.readyState !== WebSocket.OPEN) {
+                showAlert('WebSocket not connected', 'error');
+                return;
+            }
+
+            const config = {
+                action: 'saveConfig',
+                dhcp: document.getElementById('dhcp').checked,
+                ip: document.getElementById('ip').value,
+                subnet: document.getElementById('subnet').value,
+                gateway: document.getElementById('gateway').value,
+                dns: document.getElementById('dns').value,
+                ntpServer: document.getElementById('ntpServer').value,
+                ntpPort: parseInt(document.getElementById('ntpPort').value) || 123,
+                timeOffset: parseInt(document.getElementById('timeOffset').value) || 0
+            };
+
+            websocket.send(JSON.stringify(config));
+            showAlert('Saving configuration...', 'success');
+        }
+
+        // Save channels configuration
+        function saveChannelsConfig() {
+            if (!websocket || websocket.readyState !== WebSocket.OPEN) {
+                showAlert('WebSocket not connected', 'error');
+                return;
+            }
+
+            const config = {
+                action: 'saveConfig',
+                enabled: document.getElementById('masterEnabled').checked,
+                channel_1_mode: parseInt(document.getElementById('channel_1_mode').value),
+                channel_2_mode: parseInt(document.getElementById('channel_2_mode').value),
+                channel_3_mode: parseInt(document.getElementById('channel_3_mode').value),
+                channel_4_mode: parseInt(document.getElementById('channel_4_mode').value),
+                channel_5_mode: parseInt(document.getElementById('channel_5_mode').value),
+                channel_6_mode: parseInt(document.getElementById('channel_6_mode').value),
+                channel_7_mode: parseInt(document.getElementById('channel_7_mode').value),
+                channel_8_mode: parseInt(document.getElementById('channel_8_mode').value)
+            };
+
+            websocket.send(JSON.stringify(config));
+            showAlert('Saving channel configuration...', 'success');
+        }
+
+
+        // Show alert messages
+        function showAlert(message, type) {
+            const alert = document.getElementById('alert');
+            alert.textContent = message;
+            alert.className = `alert ${type}`;
+            alert.style.display = 'block';
+
+            // Auto hide after 4 seconds for success, 6 seconds for error
+            const timeout = type === 'error' ? 6000 : 4000;
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, timeout);
+        }
+
+        // Initialize
+        function init() {
+            // Initialize link LED as disconnected
+            updateLinkLED();
+            connectWebSocket();
+        }
+
+        // Start when page loads
+        window.onload = init;
+    </script>
+</body>
+</html>

@@ -139,9 +139,9 @@ void Display::print_display(int year, int hour, int min, int sec) {
   digits[3] = (min / 10) % 10; // Digit 4 - minutes tens
   digits[4] = hour % 10;       // Digit 5 - hours units
   digits[5] = (hour / 10) % 10;// Digit 6 - hours tens
-  digits[6] = year % 10;       // Digit 7 - year units
+  digits[8] = year % 10;       // Digit 7 - year units
   digits[7] = (year / 10) % 10;// Digit 8 - year tens  
-  digits[8] = (year / 100) % 10; // Digit 9 - year hundreds
+  digits[6] = (year / 100) % 10; // Digit 9 - year hundreds
   
   // For each segment (A through G)
   for (int segment = 0; segment < 7; segment++) {
