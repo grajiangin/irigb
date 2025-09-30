@@ -17,7 +17,7 @@
 
 void encodeTimeIntoBits(  uint8_t *bits, const NTPTime &time,int irig_format);
 
-  
+void convert_bit(bool *bits, const NTPTime &time);
 
 
 #endif // IRIGB_H 

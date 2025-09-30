@@ -182,3 +182,79 @@ void encodeTimeIntoBits(uint8_t *bits, const NTPTime &time, int irig_format)
         break;
     }
 }
+
+
+
+void convert_bit(bool *bits, const NTPTime &time)
+{
+  // Initialize all bits to false
+  for (int i = 0; i < 100; i++)
+  {
+    bits[i] = false;
+  }
+
+  // Position reference markers (every 10 bits)
+  for (int i = 0; i < 10; i++)
+  {
+    bits[i * 10] = true; // PR markers
+  }
+
+  // Add a second PR marker at the beginning (Frame reference marker)
+  bits[0] = true; // First PR marker (already set above)
+  bits[1] = true; // Second PR marker to indicate frame start
+
+  // Encode seconds (BCD) - Bits 2-9 (shifted due to second PR marker)
+  bits[2] = (time.second % 10) & 0x01;
+  bits[3] = (time.second % 10) & 0x02;
+  bits[4] = (time.second % 10) & 0x04;
+  bits[5] = (time.second % 10) & 0x08;
+  bits[6] = 0; // Unused
+  bits[7] = (time.second / 10) & 0x01;
+  bits[8] = (time.second / 10) & 0x02;
+  bits[9] = (time.second / 10) & 0x04;
+
+  // Encode minutes (BCD) - Bits 11-19
+  bits[11] = (time.minute % 10) & 0x01;
+  bits[12] = (time.minute % 10) & 0x02;
+  bits[13] = (time.minute % 10) & 0x04;
+  bits[14] = (time.minute % 10) & 0x08;
+  bits[15] = 0; // Unused
+  bits[16] = (time.minute / 10) & 0x01;
+  bits[17] = (time.minute / 10) & 0x02;
+  bits[18] = (time.minute / 10) & 0x04;
+  bits[19] = 0; // Unused
+
+  // Encode hours (BCD) - Bits 21-29
+  bits[21] = (time.hour % 10) & 0x01;
+  bits[22] = (time.hour % 10) & 0x02;
+  bits[23] = (time.hour % 10) & 0x04;
+  bits[24] = (time.hour % 10) & 0x08;
+  bits[25] = 0; // Unused
+  bits[26] = (time.hour / 10) & 0x01;
+  bits[27] = (time.hour / 10) & 0x02;
+  bits[28] = 0; // Unused
+  bits[29] = 0; // Unused
+
+  // Encode day of year (BCD) - Bits 31-39
+  bits[31] = (time.day % 10) & 0x01;
+  bits[32] = (time.day % 10) & 0x02;
+  bits[33] = (time.day % 10) & 0x04;
+  bits[34] = (time.day % 10) & 0x08;
+  bits[35] = ((time.day / 10) % 10) & 0x01;
+  bits[36] = ((time.day / 10) % 10) & 0x02;
+  bits[37] = ((time.day / 10) % 10) & 0x04;
+  bits[38] = ((time.day / 10) % 10) & 0x08;
+  bits[39] = (time.day / 100) & 0x01;
+
+  // Encode year (BCD) - Bits 50-58
+  bits[50] = (time.year % 10) & 0x01;
+  bits[51] = (time.year % 10) & 0x02;
+  bits[52] = (time.year % 10) & 0x04;
+  bits[53] = (time.year % 10) & 0x08;
+  bits[54] = 0; // Unused
+  bits[55] = (time.year / 10) & 0x01;
+  bits[56] = (time.year / 10) & 0x02;
+  bits[57] = (time.year / 10) & 0x04;
+  bits[58] = (time.year / 10) & 0x08;
+  // Rest of the frame (59-99) can be used for additional data or left as 0
+}

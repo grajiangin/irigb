@@ -29,6 +29,8 @@ bool irig_enabled = false;
 
 bool ntp_valid = false;
 
+bool bits[100];
+
 struct IrigBits
 {
   uint8_t bits[105];
@@ -40,7 +42,7 @@ IrigBits bits[8];
 bool pin_state[8];
 
 // ISR function called every 0.5ms
-void IRAM_ATTR onTimer()
+void IRAM_ATTR onTimer2()
 {
 
   // if(wclk_state)
@@ -115,82 +117,73 @@ void IRAM_ATTR onTimer()
   wclk_state = !wclk_state;
   
 }
+void IRAM_ATTR onTimer()
+{
+
+  // if(wclk_state)
+  // {
+  //   timerAlarmWrite(timer, 600, true);  
+  // }
+  // else
+  // {
+  //   timerAlarmWrite(timer, 400, true);  
+  // }
 
 
-// // / ISR function called every 0.5ms
-// void IRAM_ATTR onTimer2()
-// {
+  if (wclk_state)
+  {
+    if (irig_available)
+    {
+     
 
-//   // if(wclk_state)
-//   // {
-//   //   timerAlarmWrite(timer, 600, true);  
-//   // }
-//   // else
-//   // {
-//   //   timerAlarmWrite(timer, 400, true);  
-//   // }
+      if(bit_index%10 == 0) {
+        digitalWrite(P1, count_10ms < 8 ? HIGH : LOW);
+      }
+      else 
+      {
+        if(bits[bit_index] == 0) {
+          digitalWrite(P1, count_10ms < 2 ? HIGH : LOW);
+        }
+        else if(bits[bit_index] == 1) {
+          digitalWrite(P1, count_10ms < 5 ? HIGH : LOW);
+        }
+
+      }
+    
 
 
-//   if (wclk_state)
-//   {
-//     if (irig_available)
-//     {
-//       uint8_t bit = bits[0].bits[bit_index];
-//       uint8_t format = bits[0].format;
-//       uint8_t pin = bits[0].pin;
-//       if (format == 8)
-//       {
-//         // digitalWrite(pin, LOW);
-//         digitalWrite(P1, LOW);
-//         // pin_state[i] = false;
-//         continue;
-//       }
-//       if (bit == 0)
-//       {
-//         digitalWrite(P1, count_10ms < 2 ? HIGH : LOW);
-//         // pin_state[i] = count_10ms < 2 ;
-//       }
-//       else if (bit == 1)
-//       {
-//         digitalWrite(P1, count_10ms < 5 ? HIGH : LOW);
-//         // pin_state[i] = count_10ms < 5 ;
-//       }
-//       else if (bit == 2)
-//       {
-//         digitalWrite(P1, count_10ms < 8 ? HIGH : LOW);
-//         // pin_state[i] = count_10ms < 8 ;
-//       }
-//       count_10ms++;
-//       if (count_10ms >= 10)
-//       {
-//         count_10ms = 0;
-//         bit_index++;
-//         if (bit_index >= 100)
-//         {
-//           bit_index = 0;
-//           irig_available = false;
-//         }
-//       }
-//     }
-//     else
-//     {
-//       count_10ms = 0;
-//       bit_index = 0;
-//     }
-//   }
+
+      count_10ms++;
+      if (count_10ms >= 10)
+      {
+        count_10ms = 0;
+        bit_index++;
+        if (bit_index >= 100)
+        {
+          bit_index = 0;
+          // irig_available = false;
+        }
+      }
+    }
+    else
+    {
+      count_10ms = 0;
+      bit_index = 0;
+    }
+  }
   
-//   digitalWrite(P1, pin_state[0]);
-//   digitalWrite(P2, pin_state[1]);
-//   digitalWrite(P3, pin_state[2]);
-//   digitalWrite(P4, pin_state[3]);
-//   digitalWrite(P5, pin_state[4]);
-//   digitalWrite(P6, pin_state[5]);
-//   digitalWrite(P7, pin_state[6]);
-//   digitalWrite(P8, pin_state[7]);
-//   digitalWrite(WCLK, !wclk_state);
-//   wclk_state = !wclk_state;
+  digitalWrite(P1, pin_state[0]);
+  digitalWrite(P2, pin_state[1]);
+  digitalWrite(P3, pin_state[2]);
+  digitalWrite(P4, pin_state[3]);
+  digitalWrite(P5, pin_state[4]);
+  digitalWrite(P6, pin_state[5]);
+  digitalWrite(P7, pin_state[6]);
+  digitalWrite(P8, pin_state[7]);
+  digitalWrite(WCLK, !wclk_state);
+  wclk_state = !wclk_state;
   
-// }
+}
 
 extern void ntp_hanlder(NTPTime time)
 {
@@ -201,18 +194,21 @@ extern void ntp_hanlder(NTPTime time)
     bits[i].bits[0]=0;
   }*/
   // irig_available = true;
-   if (irig_enabled)
-   {
-     encodeTimeIntoBits(bits[0].bits, time, settings.channel_1_mode);
-     encodeTimeIntoBits(bits[1].bits, time, settings.channel_2_mode);
-     encodeTimeIntoBits(bits[2].bits, time, settings.channel_3_mode);
-     encodeTimeIntoBits(bits[3].bits, time, settings.channel_4_mode);
-     encodeTimeIntoBits(bits[4].bits, time, settings.channel_5_mode);
-     encodeTimeIntoBits(bits[5].bits, time, settings.channel_6_mode);
-     encodeTimeIntoBits(bits[6].bits, time, settings.channel_7_mode);
-     encodeTimeIntoBits(bits[7].bits, time, settings.channel_8_mode);
-     irig_available = true;
-   }
+  //  if (irig_enabled)
+  //  {
+  //    encodeTimeIntoBits(bits[0].bits, time, settings.channel_1_mode);
+  //    encodeTimeIntoBits(bits[1].bits, time, settings.channel_2_mode);
+  //    encodeTimeIntoBits(bits[2].bits, time, settings.channel_3_mode);
+  //    encodeTimeIntoBits(bits[3].bits, time, settings.channel_4_mode);
+  //    encodeTimeIntoBits(bits[4].bits, time, settings.channel_5_mode);
+  //    encodeTimeIntoBits(bits[5].bits, time, settings.channel_6_mode);
+  //    encodeTimeIntoBits(bits[6].bits, time, settings.channel_7_mode);
+  //    encodeTimeIntoBits(bits[7].bits, time, settings.channel_8_mode);
+  //    irig_available = true;
+  //  }
+
+  convert_bit(bits, time);
+  irig_available = true;
 }
 
 void init_pins()
