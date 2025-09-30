@@ -6,6 +6,7 @@
 // SPI configuration for ENC28J60
 
 #include <Arduino.h>
+#include <WiFi.h>
 #include <ESP32-ENC28J60.h>
 #include "driver/spi_master.h"
 #include "settings.h"

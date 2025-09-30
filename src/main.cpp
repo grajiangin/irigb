@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <WiFi.h>
 #include "driver/spi_master.h"
 #include <esp_err.h>
 #include "ESP32-ENC28J60.h"
