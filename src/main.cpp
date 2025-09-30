@@ -29,7 +29,7 @@ bool irig_enabled = false;
 
 bool ntp_valid = false;
 
-bool bits[100];
+bool bitss[100];
 
 struct IrigBits
 {
@@ -141,10 +141,10 @@ void IRAM_ATTR onTimer()
       }
       else 
       {
-        if(bits[bit_index] == 0) {
+        if(bitss[bit_index] == 0) {
           digitalWrite(P1, count_10ms < 2 ? HIGH : LOW);
         }
-        else if(bits[bit_index] == 1) {
+        else if(bitss[bit_index] == 1) {
           digitalWrite(P1, count_10ms < 5 ? HIGH : LOW);
         }
 
@@ -207,7 +207,7 @@ extern void ntp_hanlder(NTPTime time)
   //    irig_available = true;
   //  }
 
-  convert_bit(bits, time);
+  convert_bit(bitss, time);
   irig_available = true;
 }
 
