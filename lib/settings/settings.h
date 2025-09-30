@@ -37,6 +37,10 @@ public:
     // Network changes flag - set to true when network settings are updated via web interface
     bool network_changes_flag;
 
+    // NTP changes flag - set to true when NTP settings are updated via web interface
+    bool ntp_changes_flag;
+    
+
     // IRIG channel modes (8 channels)
     uint8_t channel_1_mode;
     uint8_t channel_2_mode;
@@ -49,13 +53,20 @@ public:
 
     // Network changes flag methods
     bool getNetworkChangesFlag();
+
     void setNetworkChangesFlag(bool flag);
+
+    // NTP changes flag methods
+    bool getNTPChangesFlag();
+
+    void setNTPChangesFlag(bool flag);
 
     // Get default values
     static NetworkConfig getDefaultNetwork();
     static NTPConfig getDefaultNTP();
     static bool getDefaultEnabled();
     static bool getDefaultNetworkChangesFlag();
+    static bool getDefaultNTPChangesFlag();
     static uint8_t getDefaultChannelMode();
 
 private:

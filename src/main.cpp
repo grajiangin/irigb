@@ -26,6 +26,8 @@ uint8_t bit_index = 0;
 bool irig_available = false;
 bool irig_enabled = false;
 
+bool ntp_valid = false;
+
 struct IrigBits
 {
   uint8_t bits[105];
@@ -34,12 +36,22 @@ struct IrigBits
 };
 
 IrigBits bits[8];
+bool pin_state[8];
 
 // ISR function called every 0.5ms
-
 void IRAM_ATTR onTimer()
 {
-  digitalWrite(WCLK, wclk_state);
+
+  // if(wclk_state)
+  // {
+  //   timerAlarmWrite(timer, 600, true);  
+  // }
+  // else
+  // {
+  //   timerAlarmWrite(timer, 400, true);  
+  // }
+
+
   if (wclk_state)
   {
     if (irig_available)
@@ -51,20 +63,24 @@ void IRAM_ATTR onTimer()
         uint8_t pin = bits[i].pin;
         if (format == 8)
         {
-          digitalWrite(pin, LOW);
+          // digitalWrite(pin, LOW);
+          pin_state[i] = false;
           continue;
         }
         if (bit == 0)
         {
-          digitalWrite(pin, count_10ms < 2 ? HIGH : LOW);
+          // digitalWrite(pin, count_10ms < 2 ? HIGH : LOW);
+          pin_state[i] = count_10ms < 2 ;
         }
         else if (bit == 1)
         {
-          digitalWrite(pin, count_10ms < 5 ? HIGH : LOW);
+          // digitalWrite(pin, count_10ms < 5 ? HIGH : LOW);
+          pin_state[i] = count_10ms < 5 ;
         }
         else if (bit == 2)
         {
-          digitalWrite(pin, count_10ms < 8 ? HIGH : LOW);
+          // digitalWrite(pin, count_10ms < 8 ? HIGH : LOW);
+          pin_state[i] = count_10ms < 8 ;
         }
       }
       count_10ms++;
@@ -85,12 +101,29 @@ void IRAM_ATTR onTimer()
       bit_index = 0;
     }
   }
+  
+  digitalWrite(P1, pin_state[0]);
+  digitalWrite(P2, pin_state[1]);
+  digitalWrite(P3, pin_state[2]);
+  digitalWrite(P4, pin_state[3]);
+  digitalWrite(P5, pin_state[4]);
+  digitalWrite(P6, pin_state[5]);
+  digitalWrite(P7, pin_state[6]);
+  digitalWrite(P8, pin_state[7]);
+  digitalWrite(WCLK, !wclk_state);
   wclk_state = !wclk_state;
+  
 }
 
 extern void ntp_hanlder(NTPTime time)
 {
   ntp_got_data = true;
+  ntp_valid = true;
+  // for(int i=0;i<8;i++)
+  // {
+  //   bits[i].bits[0]=1;
+  // }
+  // irig_available = true;
   if (irig_enabled)
   {
     encodeTimeIntoBits(bits[0].bits, time, settings.channel_1_mode);
@@ -175,7 +208,7 @@ void setup()
 
   init_ntp();
 }
-
+int ip_count=0;
 void loop()
 {
   NTPTime time = ntp_get_time();
@@ -189,10 +222,21 @@ void loop()
   bits[7].format = settings.channel_8_mode;
   webServer.sendTimeUpdate(time.hour, time.minute, time.second, time.day);
   irig_enabled = settings.enabled;
-  display.print_display(time.day, time.hour, time.minute, time.second);
-  display.set_seconds_led(sec_blink);
-  display.set_minute_led(true);
-  display.set_hour_led(true);
+  if(ntp_valid)
+  {
+    display.print_display(time.day, time.hour, time.minute, time.second);
+    display.set_seconds_led(sec_blink);
+    display.set_minute_led(true);
+    display.set_hour_led(true);
+  }
+  else 
+  {
+    display.print_display(0, 0, 0, 0);
+    display.set_seconds_led(false);
+    display.set_minute_led(false);
+    display.set_hour_led(false);
+  }
+
   display.set_enabled_led(settings.enabled);
   display.set_network_led(eth_link_up());
   if (sec_blink)

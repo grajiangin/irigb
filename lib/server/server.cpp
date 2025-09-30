@@ -481,6 +481,7 @@ void IRIGWebServer::handleSaveConfigWebSocket(AsyncWebSocketClient *client, Stri
                 String offsetStr = jsonData.substring(colonPos + 1, commaPos);
                 offsetStr.trim();
                 settings->ntp.timeOffset = offsetStr.toInt();
+                settings->setNTPChangesFlag(true);
             }
         }
     }

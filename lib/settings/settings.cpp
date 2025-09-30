@@ -8,7 +8,9 @@ Settings::Settings() {
     ntp = getDefaultNTP();
     enabled = getDefaultEnabled();
     network_changes_flag = getDefaultNetworkChangesFlag();
+    ntp_changes_flag = getDefaultNTPChangesFlag();
     
+
     // Initialize channel modes
     channel_1_mode = getDefaultChannelMode();
     channel_2_mode = getDefaultChannelMode();
@@ -48,7 +50,10 @@ bool Settings::load() {
     enabled = preferences.getBool("enabled", enabled);
 
     // Load network changes flag
-    network_changes_flag = preferences.getBool("networkChangesFlag", network_changes_flag);
+    network_changes_flag = preferences.getBool("netFlag", network_changes_flag);
+
+    // Load NTP changes flag
+    ntp_changes_flag = preferences.getBool("ntpFlag", ntp_changes_flag);
 
     // Load channel modes
     channel_1_mode = preferences.getUChar("channel_1_mode", channel_1_mode);
@@ -85,6 +90,18 @@ void Settings::setNetworkChangesFlag(bool flag) {
     }
 }
 
+bool Settings::getNTPChangesFlag() {
+    return ntp_changes_flag;
+}
+
+void Settings::setNTPChangesFlag(bool flag) {
+    ntp_changes_flag = flag;
+    // Save immediately when flag is set to true to ensure it's persisted
+    if (flag) {
+        save();
+    }
+}
+
 bool Settings::save() {
     Serial.println("Saving settings to Preferences...");
     
@@ -109,7 +126,10 @@ bool Settings::save() {
     preferences.putBool("enabled", enabled);
 
     // Save network changes flag
-    preferences.putBool("networkChangesFlag", network_changes_flag);
+    preferences.putBool("netFlag", network_changes_flag);
+
+    // Save NTP changes flag
+    preferences.putBool("ntpFlag", ntp_changes_flag);
 
     // Save channel modes
     Serial.printf("Saving channel modes: 1=%d, 2=%d, 3=%d, 4=%d, 5=%d, 6=%d, 7=%d, 8=%d\n", 
@@ -153,6 +173,10 @@ bool Settings::getDefaultEnabled() {
 }
 
 bool Settings::getDefaultNetworkChangesFlag() {
+    return false;  // Default to false, no changes pending
+}
+
+bool Settings::getDefaultNTPChangesFlag() {
     return false;  // Default to false, no changes pending
 }
 

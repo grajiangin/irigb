@@ -1,19 +1,22 @@
 #include "ntp.h"
 #include <Arduino.h>
 #include <string.h>
+#include "settings.h"
 
 // Global NTP variables
 WiFiUDP *ntpUDP;
 bool _udpSetup = false;
-const char* _poolServerName = "time.google.com"; // Changed from default pool.ntp.org
+String _poolServerName = ""; // Will be set from settings
 IPAddress _poolServerIP;
 unsigned int _port = NTP_DEFAULT_LOCAL_PORT;
-long _timeOffset = 3600; // 1 hour offset
+unsigned int _serverPort = 123; // NTP server port, will be set from settings
+long _timeOffset = 3600; // Will be set from settings
 unsigned long _updateInterval = 60000; // 60 seconds
 unsigned long _currentEpoc = 0;
 unsigned long _lastUpdate = 0;
 unsigned long _currentMilliseconds = 0;
 byte _packetBuffer[NTP_PACKET_SIZE];
+extern Settings settings;
 
 void sendNTPPacket() {
     // set all bytes in the buffer to 0
@@ -31,7 +34,7 @@ void sendNTPPacket() {
 
     // all NTP fields have been given values, now
     // you can send a packet requesting a timestamp:
-    ntpUDP->beginPacket(_poolServerName, 123);
+    ntpUDP->beginPacket(_poolServerName.c_str(), _serverPort);
     ntpUDP->write(_packetBuffer, NTP_PACKET_SIZE);
     ntpUDP->endPacket();
 }
@@ -48,6 +51,13 @@ void ntp_begin(unsigned int port) {
 
 bool ntp_forceUpdate() {
     // flush any existing packets
+    // Debug: print current NTP server and port from settings before sending request
+    Serial.print("NTP: Using server: ");
+    Serial.print(settings.ntp.server);
+    Serial.print(" port: ");
+    Serial.println(settings.ntp.port);
+
+ 
     while(ntpUDP->parsePacket() != 0)
         ntpUDP->flush();
 
@@ -88,7 +98,10 @@ bool ntp_forceUpdate() {
 
 bool ntp_update() {
     if ((millis() - _lastUpdate >= _updateInterval)     // Update after _updateInterval
-        || _lastUpdate == 0) {                          // Update if there was no update yet.
+        || _lastUpdate == 0) {  
+        _timeOffset=settings.ntp.timeOffset; 
+        _port=settings.ntp.port;
+        _poolServerName=settings.ntp.server;                        // Update if there was no update yet.
         if (!_udpSetup || _port != NTP_DEFAULT_LOCAL_PORT) ntp_begin(_port); // setup the UDP client if needed
         return ntp_forceUpdate();
     }
@@ -100,6 +113,7 @@ bool ntp_isTimeSet() {
 }
 
 unsigned long ntp_getEpochTime() {
+    _timeOffset=settings.ntp.timeOffset;
     return _timeOffset + // User offset
            _currentEpoc + // Epoch returned by the NTP server
            ((millis() - _lastUpdate) / 1000); // Time since last update
@@ -169,9 +183,19 @@ void ntp_task(void *param) {
 void init_ntp() {
     Serial.println("Initializing NTP...");
     ntpUDP = new WiFiUDP();
+
+    // Set NTP server, port, and time offset from settings
+    _poolServerName = settings.ntp.server;
+    _serverPort = settings.ntp.port;
+    _timeOffset = settings.ntp.timeOffset;
+
+    Serial.printf("NTP Server: %s\n", _poolServerName.c_str());
+    Serial.printf("NTP Port: %d\n", _serverPort);
+    Serial.printf("NTP Time Offset: %d seconds\n", _timeOffset);
+
     ntp_begin();
     ntp_setUpdateInterval(5000);
-    ntp_setTimeOffset(7*3600);
+    // Time offset is now set from settings above
     // Create a FreeRTOS task to periodically update NTP time
     xTaskCreate(
         ntp_task,
