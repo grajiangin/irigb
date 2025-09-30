@@ -52,6 +52,7 @@ void ntp_begin(unsigned int port) {
 bool ntp_forceUpdate() {
     // flush any existing packets
     // Debug: print current NTP server and port from settings before sending request
+    Serial.print(_timeOffset);
     Serial.print("NTP: Using server: ");
     Serial.print(settings.ntp.server);
     Serial.print(" port: ");
@@ -114,7 +115,7 @@ bool ntp_isTimeSet() {
 
 unsigned long ntp_getEpochTime() {
     _timeOffset=settings.ntp.timeOffset;
-    return _timeOffset + // User offset
+    return (_timeOffset *3600) + // User offset
            _currentEpoc + // Epoch returned by the NTP server
            ((millis() - _lastUpdate) / 1000); // Time since last update
 }

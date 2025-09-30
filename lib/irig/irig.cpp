@@ -102,83 +102,83 @@ void encodeTimeIntoBits(uint8_t *bits, const NTPTime &time, int irig_format)
         break;
     default:
         break;
-        // Rest of the frame (59-99) can be used for additional data or left as 0
-        switch (irig_format) // Bits 61-79 control function
+    }
+    // Rest of the frame (59-99) can be used for additional data or left as 0
+    switch (irig_format) // Bits 61-79 control function
+    {
+    case FORMAT_B000_B120:
+    case FORMAT_B001_B121:
+    case FORMAT_B004_B124:
+    case FORMAT_B005_B125:
+    {
+        /*****set for IRIG B 004 */
+        /*****tested for siemens swt3000, dimat tpu-1 */
+        // Table 5-1. Overview of the Control Bits Added in the IEEE Specifications
+        bits[61] = 0; // active Leap Second Pending (LSP)—This field becomes a 1 up to 59 seconds before a leap is inserted ordeleted. Then, it returns to 0 after the event.
+        bits[62] = 0; // Leap Second (LS) —0 = Add a Second (most common) and 1 = Subtract a Second
+        bits[63] = 0; // Daylight Saving Pending (DSP)—This field becomes a 1 up to 59 seconds before a DST event.Returns to 0 after the event.
+        bits[64] = 0; // Daylight Savings Time (DST) —Becomes 1 during DST.
+
+        bits[65] = 0; // Time zone offset sign (0=+, 1=−)
+        bits[66] = 1; // Bits 66-69 Time Offset —This is the offset from the IRIG-B time to UTC time that is, the local time offset (+12 hr for NZ). Taking this offset, and the IRIG time you can get the UTC time. That is, IRIG time – 12 hr = UTC tim
+
+        bits[67] = 1;
+        bits[68] = 1;
+
+        bits[69] = 0;
+
+        bits[71] = 0; // Time offset 0.5 hours —0 = No offset and 1 = 0.5-hour offset
+        bits[72] = 0; // Bits 72-75 Time Quality bit—This is a 4-bit code representation of the approximate clock time error from  UTC. See Table 5-2 for the full range of values.
+        bits[73] = 0;
+        bits[74] = 0;
+        bits[75] = 0;
+        int count = 0;
+        for (int i = 2; i <= 75; i++)
         {
-        case FORMAT_B000_B120:
-        case FORMAT_B001_B121:
-        case FORMAT_B004_B124:
-        case FORMAT_B005_B125:
-        {
-            /*****set for IRIG B 004 */
-            /*****tested for siemens swt3000, dimat tpu-1 */
-            // Table 5-1. Overview of the Control Bits Added in the IEEE Specifications
-            bits[61] = 0; // active Leap Second Pending (LSP)—This field becomes a 1 up to 59 seconds before a leap is inserted ordeleted. Then, it returns to 0 after the event.
-            bits[62] = 0; // Leap Second (LS) —0 = Add a Second (most common) and 1 = Subtract a Second
-            bits[63] = 0; // Daylight Saving Pending (DSP)—This field becomes a 1 up to 59 seconds before a DST event.Returns to 0 after the event.
-            bits[64] = 0; // Daylight Savings Time (DST) —Becomes 1 during DST.
-
-            bits[65] = 0; // Time zone offset sign (0=+, 1=−)
-            bits[66] = 1; // Bits 66-69 Time Offset —This is the offset from the IRIG-B time to UTC time that is, the local time offset (+12 hr for NZ). Taking this offset, and the IRIG time you can get the UTC time. That is, IRIG time – 12 hr = UTC tim
-
-            bits[67] = 1;
-            bits[68] = 1;
-
-            bits[69] = 0;
-
-            bits[71] = 0; // Time offset 0.5 hours —0 = No offset and 1 = 0.5-hour offset
-            bits[72] = 0; // Bits 72-75 Time Quality bit—This is a 4-bit code representation of the approximate clock time error from  UTC. See Table 5-2 for the full range of values.
-            bits[73] = 0;
-            bits[74] = 0;
-            bits[75] = 0;
-            int count = 0;
-            for (int i = 2; i <= 75; i++)
-            {
-                if (i % 10 != 0)
-                    if (bits[i])
-                        count++;
-            }
-            if (count % 2)
-                bits[76] = 0;
-            else
-                bits[76] = 1; // Even parity of bits 2−75 Parity—This is the parity for preceding bits. Acts as a check to ensure that the preceding data makes sense. The parity bit ensures that an even parity is generated.The parity bit is even parity over all data bits from 1 through 74. Marker bits are ignored (or, equivalently, read as 0).
-            bits[77] = 0;     // Bits 77-79  Continuous Time Quality—This is a 3-bit code representation of the estimated time error in the transmitted message. See Table 5-3 for the full range of values.
-            bits[78] = 0;
-            bits[79] = 0;
-            break;
+            if (i % 10 != 0)
+                if (bits[i])
+                    count++;
         }
-        default:
-            break;
-        }
-        switch (irig_format) // Bits 81-99 control function
-        {
-        case FORMAT_B000_B120:
-        case FORMAT_B003_B123:
-        case FORMAT_B004_B124:
-        case FORMAT_B007_B127:
-            bits[81] = (straight_binary_second & 0x01) ? 1 : 0;
-            bits[82] = (straight_binary_second & 0x02) ? 1 : 0;
-            bits[83] = (straight_binary_second & 0x04) ? 1 : 0;
-            bits[84] = (straight_binary_second & 0x08) ? 1 : 0;
-            bits[85] = (straight_binary_second & 0x10) ? 1 : 0;
-            bits[86] = (straight_binary_second & 0x20) ? 1 : 0;
-            bits[87] = (straight_binary_second & 0x40) ? 1 : 0;
-            bits[88] = (straight_binary_second & 0x80) ? 1 : 0;
-            bits[89] = (straight_binary_second & 0x100) ? 1 : 0;
+        if (count % 2)
+            bits[76] = 0;
+        else
+            bits[76] = 1; // Even parity of bits 2−75 Parity—This is the parity for preceding bits. Acts as a check to ensure that the preceding data makes sense. The parity bit ensures that an even parity is generated.The parity bit is even parity over all data bits from 1 through 74. Marker bits are ignored (or, equivalently, read as 0).
+        bits[77] = 0;     // Bits 77-79  Continuous Time Quality—This is a 3-bit code representation of the estimated time error in the transmitted message. See Table 5-3 for the full range of values.
+        bits[78] = 0;
+        bits[79] = 0;
+        break;
+    }
+    default:
+        break;
+    }
+    switch (irig_format) // Bits 81-99 control function
+    {
+    case FORMAT_B000_B120:
+    case FORMAT_B003_B123:
+    case FORMAT_B004_B124:
+    case FORMAT_B007_B127:
+        bits[81] = (straight_binary_second & 0x01) ? 1 : 0;
+        bits[82] = (straight_binary_second & 0x02) ? 1 : 0;
+        bits[83] = (straight_binary_second & 0x04) ? 1 : 0;
+        bits[84] = (straight_binary_second & 0x08) ? 1 : 0;
+        bits[85] = (straight_binary_second & 0x10) ? 1 : 0;
+        bits[86] = (straight_binary_second & 0x20) ? 1 : 0;
+        bits[87] = (straight_binary_second & 0x40) ? 1 : 0;
+        bits[88] = (straight_binary_second & 0x80) ? 1 : 0;
+        bits[89] = (straight_binary_second & 0x100) ? 1 : 0;
 
-            bits[91] = (straight_binary_second & 0x200) ? 1 : 0;
-            bits[92] = (straight_binary_second & 0x400) ? 1 : 0;
-            bits[93] = (straight_binary_second & 0x800) ? 1 : 0;
-            bits[94] = (straight_binary_second & 0x1000) ? 1 : 0;
-            bits[95] = (straight_binary_second & 0x2000) ? 1 : 0;
-            bits[96] = (straight_binary_second & 0x4000) ? 1 : 0;
-            bits[97] = (straight_binary_second & 0x8000) ? 1 : 0;
-            bits[98] = (straight_binary_second & 0x10000) ? 1 : 0;
-            bits[99] = 0;
-            break;
-        default:
+        bits[91] = (straight_binary_second & 0x200) ? 1 : 0;
+        bits[92] = (straight_binary_second & 0x400) ? 1 : 0;
+        bits[93] = (straight_binary_second & 0x800) ? 1 : 0;
+        bits[94] = (straight_binary_second & 0x1000) ? 1 : 0;
+        bits[95] = (straight_binary_second & 0x2000) ? 1 : 0;
+        bits[96] = (straight_binary_second & 0x4000) ? 1 : 0;
+        bits[97] = (straight_binary_second & 0x8000) ? 1 : 0;
+        bits[98] = (straight_binary_second & 0x10000) ? 1 : 0;
+        bits[99] = 0;
+        break;
+    default:
 
-            break;
-        }
+        break;
     }
 }

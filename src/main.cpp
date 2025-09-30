@@ -92,7 +92,7 @@ void IRAM_ATTR onTimer()
         if (bit_index >= 100)
         {
           bit_index = 0;
-          irig_available = false;
+          // irig_available = false;
         }
       }
     }
@@ -196,23 +196,23 @@ extern void ntp_hanlder(NTPTime time)
 {
   ntp_got_data = true;
   ntp_valid = true;
-  for(int i=0;i<8;i++)
+  /*for(int i=0;i<8;i++)
   {
     bits[i].bits[0]=0;
-  }
-  irig_available = true;
-  // if (irig_enabled)
-  // {
-  //   encodeTimeIntoBits(bits[0].bits, time, settings.channel_1_mode);
-  //   encodeTimeIntoBits(bits[1].bits, time, settings.channel_2_mode);
-  //   encodeTimeIntoBits(bits[2].bits, time, settings.channel_3_mode);
-  //   encodeTimeIntoBits(bits[3].bits, time, settings.channel_4_mode);
-  //   encodeTimeIntoBits(bits[4].bits, time, settings.channel_5_mode);
-  //   encodeTimeIntoBits(bits[5].bits, time, settings.channel_6_mode);
-  //   encodeTimeIntoBits(bits[6].bits, time, settings.channel_7_mode);
-  //   encodeTimeIntoBits(bits[7].bits, time, settings.channel_8_mode);
-  //   irig_available = true;
-  // }
+  }*/
+  // irig_available = true;
+   if (irig_enabled)
+   {
+     encodeTimeIntoBits(bits[0].bits, time, settings.channel_1_mode);
+     encodeTimeIntoBits(bits[1].bits, time, settings.channel_2_mode);
+     encodeTimeIntoBits(bits[2].bits, time, settings.channel_3_mode);
+     encodeTimeIntoBits(bits[3].bits, time, settings.channel_4_mode);
+     encodeTimeIntoBits(bits[4].bits, time, settings.channel_5_mode);
+     encodeTimeIntoBits(bits[5].bits, time, settings.channel_6_mode);
+     encodeTimeIntoBits(bits[6].bits, time, settings.channel_7_mode);
+     encodeTimeIntoBits(bits[7].bits, time, settings.channel_8_mode);
+     irig_available = true;
+   }
 }
 
 void init_pins()
