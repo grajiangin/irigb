@@ -49,14 +49,15 @@ void IRAM_ATTR onTimer()
     irigb6.update(bit_counter);
     irigb7.update(bit_counter);
     irigb8.update(bit_counter);
+    bit_counter++;
+    if (bit_counter >= 100)
+    {
+      bit_counter = 0;
+    }
   }
   digitalWrite(WCLK, !wclk_state);
   wclk_state = !wclk_state;
-  bit_counter++;
-  if (bit_counter >= 100)
-  {
-    bit_counter = 0;
-  }
+  
 }
 
 extern void ntp_hanlder(NTPTime time)
