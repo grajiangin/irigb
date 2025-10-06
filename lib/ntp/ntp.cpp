@@ -170,16 +170,6 @@ NTPTime ntp_get_time() {
     return timeStruct;
 }
 
-extern void ntp_hanlder( NTPTime time);
-void ntp_task(void *param) {
-    for (;;) {
-        if (ntp_update()) {
-            NTPTime currentTime = ntp_get_time();
-            ntp_hanlder(currentTime);
-        }
-        delay(1000);
-    }
-}
 
 void init_ntp() {
     Serial.println("Initializing NTP...");
@@ -198,12 +188,12 @@ void init_ntp() {
     ntp_setUpdateInterval(5000);
     // Time offset is now set from settings above
     // Create a FreeRTOS task to periodically update NTP time
-    xTaskCreate(
-        ntp_task,
-        "ntp_task",      // Task name
-        4096,            // Stack size
-        nullptr,         // Parameter
-        1,               // Priority
-        nullptr          // Task handle
-    );
+    // xTaskCreate(
+    //     ntp_task,
+    //     "ntp_task",      // Task name
+    //     4096,            // Stack size
+    //     nullptr,         // Parameter
+    //     1,               // Priority
+    //     nullptr          // Task handle
+    // );
 }

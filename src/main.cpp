@@ -9,7 +9,7 @@
 #include "ntp.h"
 #include "server.h"
 #include "settings.h"
-#include "irig.h"
+#include "irigb.h"
 // Timer for 0.5ms ISR
 hw_timer_t *timer = NULL;
 
@@ -25,14 +25,38 @@ bool irig_available = false;
 bool irig_enabled = false;
 bool ntp_valid = false;
 
+IRIGB irigb1(P1);
+IRIGB irigb2(P2);
+IRIGB irigb3(P3);
+IRIGB irigb4(P4);
+IRIGB irigb5(P5);
+IRIGB irigb6(P6);
+IRIGB irigb7(P7);
+IRIGB irigb8(P8);
+
+uint8_t bit_counter = 0;
 void IRAM_ATTR onTimer()
 {
-  if(wclk_state)
+  if (!irig_available)
+    return;
+  if (wclk_state)
   {
-
+    irigb1.update(bit_counter);
+    irigb2.update(bit_counter);
+    irigb3.update(bit_counter);
+    irigb4.update(bit_counter);
+    irigb5.update(bit_counter);
+    irigb6.update(bit_counter);
+    irigb7.update(bit_counter);
+    irigb8.update(bit_counter);
   }
   digitalWrite(WCLK, !wclk_state);
-  wclk_state = !wclk_state; 
+  wclk_state = !wclk_state;
+  bit_counter++;
+  if (bit_counter >= 100)
+  {
+    bit_counter = 0;
+  }
 }
 
 extern void ntp_hanlder(NTPTime time)
@@ -53,6 +77,36 @@ void init_pins()
   pinMode(P6, OUTPUT);
   pinMode(P7, OUTPUT);
   pinMode(P8, OUTPUT);
+}
+
+void ntp_task(void *param)
+{
+  for (;;)
+  {
+    if (ntp_update())
+    {
+      irig_available = true;
+    }
+    if (irig_available)
+    {
+      NTPTime currentTime = ntp_get_time();
+      IrigTime irigTime;
+      irigTime.second = currentTime.second;
+      irigTime.minute = currentTime.minute;
+      irigTime.hour = currentTime.hour;
+      irigTime.day = currentTime.day;
+      irigTime.year = currentTime.year;
+      irigb1.encodeTimeIntoBits(irigTime, (int)(settings.ntp.timeOffset * 3600));
+      irigb2.encodeTimeIntoBits(irigTime, (int)(settings.ntp.timeOffset * 3600));
+      irigb3.encodeTimeIntoBits(irigTime, (int)(settings.ntp.timeOffset * 3600));
+      irigb4.encodeTimeIntoBits(irigTime, (int)(settings.ntp.timeOffset * 3600));
+      irigb5.encodeTimeIntoBits(irigTime, (int)(settings.ntp.timeOffset * 3600));
+      irigb6.encodeTimeIntoBits(irigTime, (int)(settings.ntp.timeOffset * 3600));
+      irigb7.encodeTimeIntoBits(irigTime, (int)(settings.ntp.timeOffset * 3600));
+      irigb8.encodeTimeIntoBits(irigTime, (int)(settings.ntp.timeOffset * 3600));
+    }
+    delay(300);
+  }
 }
 
 void setup()
@@ -103,21 +157,30 @@ void setup()
   }
 
   init_ntp();
+
+  xTaskCreate(
+      ntp_task,
+      "ntp_task", // Task name
+      4096,       // Stack size
+      nullptr,    // Parameter
+      1,          // Priority
+      nullptr     // Task handle
+  );
 }
-int ip_count=0;
+
 void loop()
 {
   NTPTime time = ntp_get_time();
   webServer.sendTimeUpdate(time.hour, time.minute, time.second, time.day);
   irig_enabled = settings.enabled;
-  if(ntp_valid)
+  if (ntp_valid)
   {
     display.print_display(time.day, time.hour, time.minute, time.second);
     display.set_seconds_led(sec_blink);
     display.set_minute_led(true);
     display.set_hour_led(true);
   }
-  else 
+  else
   {
     display.print_display(0, 0, 0, 0);
     display.set_seconds_led(false);
