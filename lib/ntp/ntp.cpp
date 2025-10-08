@@ -176,5 +176,5 @@ void init_ntp() {
     Serial.printf("NTP Port: %d\n", _serverPort);
     Serial.printf("NTP Time Offset: %d seconds\n", _timeOffset);
     ntp_begin();
-    ntp_setUpdateInterval(10000);
+    ntp_setUpdateInterval(100);
 }
