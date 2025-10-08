@@ -321,32 +321,6 @@ void IRIGWebServer::sendTimeUpdate(int hour, int minute, int second, int day) {
             return;
         }
     }
-
-            // Apply time offset
-            if (settings && settings->ntp.timeOffset != 0) {
-                int32_t timeOffsetHours = settings->ntp.timeOffset;
-                // Convert current time to total seconds since midnight
-                int32_t totalSeconds = hour * 3600 + minute * 60 + second;
-                
-                // Apply offset (convert hours to seconds)
-                totalSeconds += timeOffsetHours * 3600;
-                
-                // Handle day overflow/underflow
-                while (totalSeconds >= 86400) {
-                    totalSeconds -= 86400;
-                    day++;
-                }
-                while (totalSeconds < 0) {
-                    totalSeconds += 86400;
-                    day--;
-                }
-                
-                // Convert back to hours, minutes, seconds
-                hour = totalSeconds / 3600;
-                minute = (totalSeconds % 3600) / 60;
-                second = totalSeconds % 60;
-            }
-
     String timeData = "{";
     timeData += "\"type\":\"time\",";
     timeData += "\"hour\":" + String(hour) + ",";

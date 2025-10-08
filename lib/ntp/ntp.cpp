@@ -182,17 +182,6 @@ void init_ntp() {
     Serial.printf("NTP Server: %s\n", _poolServerName.c_str());
     Serial.printf("NTP Port: %d\n", _serverPort);
     Serial.printf("NTP Time Offset: %d seconds\n", _timeOffset);
-
     ntp_begin();
     ntp_setUpdateInterval(5000);
-    // Time offset is now set from settings above
-    // Create a FreeRTOS task to periodically update NTP time
-    // xTaskCreate(
-    //     ntp_task,
-    //     "ntp_task",      // Task name
-    //     4096,            // Stack size
-    //     nullptr,         // Parameter
-    //     1,               // Priority
-    //     nullptr          // Task handle
-    // );
 }
