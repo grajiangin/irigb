@@ -52,13 +52,6 @@ void ntp_begin(unsigned int port) {
 bool ntp_forceUpdate() {
     // flush any existing packets
     // Debug: print current NTP server and port from settings before sending request
-    Serial.print(_timeOffset);
-    Serial.print("NTP: Using server: ");
-    Serial.print(settings.ntp.server);
-    Serial.print(" port: ");
-    Serial.println(settings.ntp.port);
-
- 
     while(ntpUDP->parsePacket() != 0)
         ntpUDP->flush();
 
@@ -183,5 +176,5 @@ void init_ntp() {
     Serial.printf("NTP Port: %d\n", _serverPort);
     Serial.printf("NTP Time Offset: %d seconds\n", _timeOffset);
     ntp_begin();
-    ntp_setUpdateInterval(1000);
+    ntp_setUpdateInterval(10000);
 }
