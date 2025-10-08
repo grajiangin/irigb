@@ -41,14 +41,14 @@ void IRAM_ATTR onTimer()
     return;
   if (wclk_state)
   {
-    irigb1.update(bit_counter);
-    irigb2.update(bit_counter);
-    irigb3.update(bit_counter);
-    irigb4.update(bit_counter);
-    irigb5.update(bit_counter);
-    irigb6.update(bit_counter);
-    irigb7.update(bit_counter);
-    irigb8.update(bit_counter);
+    irigb1.update();
+    irigb2.update();
+    irigb3.update();
+    irigb4.update();
+    irigb5.update();
+    irigb6.update();
+    irigb7.update();
+    irigb8.update();
     bit_counter++;
     if (bit_counter >= 100)
     {
@@ -57,15 +57,9 @@ void IRAM_ATTR onTimer()
   }
   digitalWrite(WCLK, !wclk_state);
   wclk_state = !wclk_state;
-  
 }
 
-extern void ntp_hanlder(NTPTime time)
-{
-  ntp_got_data = true;
-  ntp_valid = true;
-  irig_available = true;
-}
+
 
 void init_pins()
 {
@@ -84,11 +78,15 @@ void ntp_task(void *param)
 {
   for (;;)
   {
+ 
     if (ntp_update())
     {
-      irig_available = true;
+     
+      ntp_valid=true;
+      ntp_got_data=true;
+   
     }
-    if (irig_available)
+    if (ntp_valid)
     {
       NTPTime currentTime = ntp_get_time();
       IrigTime irigTime;
@@ -105,6 +103,8 @@ void ntp_task(void *param)
       irigb6.encodeTimeIntoBits(irigTime, (int)(settings.ntp.timeOffset * 3600));
       irigb7.encodeTimeIntoBits(irigTime, (int)(settings.ntp.timeOffset * 3600));
       irigb8.encodeTimeIntoBits(irigTime, (int)(settings.ntp.timeOffset * 3600));
+       irig_available = true;
+       Serial.println("HERE");
     }
     delay(300);
   }
@@ -114,6 +114,14 @@ void setup()
 {
   Serial.begin(115200);
   init_pins();
+  irigb1.begin();
+  irigb2.begin();
+  irigb3.begin();
+  irigb4.begin();
+  irigb5.begin();
+  irigb6.begin();
+  irigb7.begin();
+  irigb8.begin();
 
   // Initialize 0.5ms timer ISR
   timer = timerBegin(0, 80, true);             // Timer 0, prescaler 80 (1MHz), count up

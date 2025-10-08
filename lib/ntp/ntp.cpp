@@ -93,7 +93,6 @@ bool ntp_forceUpdate() {
     _currentMilliseconds = (fracSeconds * 1000ULL) >> 32;
 
     _currentEpoc = secsSince1900 - SEVENZYYEARS;
-
     return true;  // return true after successful update
 }
 

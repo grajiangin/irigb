@@ -6,7 +6,6 @@ IRIGB::IRIGB(uint8_t outputPin) : outputPin(outputPin)
   lastFrameTime = 0;
   ntpTimeValid = false;
   requestSetTimeFlag = false;
-  bit_counter = 0;
   state = 0;
   bit_counter_marker = 0;
   for (int i = 0; i < 100; i++)
@@ -23,7 +22,7 @@ void IRIGB::begin()
 }
 
 
-bool IRIGB::update(uint8_t bit_counter)
+bool IRIGB::update()
 {
   bool isMarker = (bit_counter % 10 == 0) || (bit_counter == 1);
   bool val = use_buffer_0? bits_0[bit_counter]:bits_1[bit_counter];
@@ -112,7 +111,7 @@ void IRIGB::encodeTimeIntoBits(const IrigTime &time, int timeOffsetHours)
   if(use_buffer_0) this->encodeTimeIntoBits(time,this->bits_1, timeOffsetHours);
   else this->encodeTimeIntoBits(time,this->bits_0, timeOffsetHours);
 
-  for(int a=0;a<100;a++) bits[a]=use_buffer_0?bits_1[a]:bits_0[a];
+  //for(int a=0;a<100;a++) bits[a]=use_buffer_0?bits_1[a]:bits_0[a];
 }
 
 void IRIGB::encodeTimeIntoBits(const IrigTime &time, bool *bits, int timeOffsetHours)
@@ -124,6 +123,7 @@ void IRIGB::encodeTimeIntoBits(const IrigTime &time, bool *bits, int timeOffsetH
 void IRIGB::encodeTimeIntoBits(const IrigTime &time, bool *bits, int timeOffsetHours, TimeQuality tq, ContinuousTimeQuality ctq)
 {
 
+  // Serial.printf("ENCODE %i\n",outputPin);
   // Initialize bits
   for (int i = 0; i < 100; i++) {
     bits[i] = false;

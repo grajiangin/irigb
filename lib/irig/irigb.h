@@ -52,7 +52,7 @@ public:
   // void beginWiFi(const char* ssid, const char* password);
 
   // Update and output a frame
-  bool update(uint8_t bit_counter);
+  bool update();
   void enable(){enabled_flag  = true;}
   void disable(){enabled_flag = false;}
   
@@ -79,10 +79,10 @@ public:
   bool enable_output = true;
   IrigTime requestSetTime;
   bool requestSetTimeFlag;
+  uint8_t bit_counter=0;
   bool bits[100];
   bool bits_0[100];
   bool bits_1[100];
-  int bit_counter=0;
   bool use_buffer_0=true;
   uint8_t state=0;
   uint8_t bit_counter_marker=0;
