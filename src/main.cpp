@@ -103,8 +103,7 @@ void ntp_task(void *param)
       irigb6.encodeTimeIntoBits(irigTime, (int)(settings.ntp.timeOffset * 3600));
       irigb7.encodeTimeIntoBits(irigTime, (int)(settings.ntp.timeOffset * 3600));
       irigb8.encodeTimeIntoBits(irigTime, (int)(settings.ntp.timeOffset * 3600));
-       irig_available = true;
-       Serial.println("HERE");
+      irig_available = true;
     }
     delay(300);
   }
