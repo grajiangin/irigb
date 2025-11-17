@@ -234,7 +234,9 @@ void IRIGWebServer::handleGetConfig(AsyncWebServerRequest *request) {
     json += "\"gateway\":\"" + String(settings->network.gateway) + "\",";
     json += "\"dns\":\"" + String(settings->network.dns) + "\",";
     json += "\"ntpServer\":\"" + String(settings->ntp.server) + "\",";
+    json += "\"ntpServer2\":\"" + String(settings->ntp.server2) + "\",";
     json += "\"ntpPort\":" + String(settings->ntp.port) + ",";
+    json += "\"ntpPort2\":" + String(settings->ntp.port2) + ",";
     json += "\"timeOffset\":" + String(settings->ntp.timeOffset) + ",";
     json += "\"enabled\":" + String(settings->enabled ? "true" : "false") + ",";
     json += "\"channel_1_mode\":" + String(settings->channel_1_mode) + ",";
@@ -378,7 +380,9 @@ void IRIGWebServer::handleGetConfigWebSocket(AsyncWebSocketClient *client) {
     json += "\"gateway\":\"" + String(settings->network.gateway) + "\",";
     json += "\"dns\":\"" + String(settings->network.dns) + "\",";
     json += "\"ntpServer\":\"" + String(settings->ntp.server) + "\",";
+    json += "\"ntpServer2\":\"" + String(settings->ntp.server2) + "\",";
     json += "\"ntpPort\":" + String(settings->ntp.port) + ",";
+    json += "\"ntpPort2\":" + String(settings->ntp.port2) + ",";
     json += "\"timeOffset\":" + String(settings->ntp.timeOffset) + ",";
     json += "\"enabled\":" + String(settings->enabled ? "true" : "false") + ",";
     json += "\"channel_1_mode\":" + String(settings->channel_1_mode) + ",";
@@ -411,10 +415,10 @@ void IRIGWebServer::handleSaveConfigWebSocket(AsyncWebSocketClient *client, Stri
     }
 
     // Extract values using string parsing
-    String searchKeys[] = {"\"ip\"", "\"subnet\"", "\"gateway\"", "\"dns\"", "\"ntpServer\""};
-    String* targetFields[] = {&settings->network.ip, &settings->network.subnet, &settings->network.gateway, &settings->network.dns, &settings->ntp.server};
+    String searchKeys[] = {"\"ip\"", "\"subnet\"", "\"gateway\"", "\"dns\"", "\"ntpServer\"", "\"ntpServer2\""};
+    String* targetFields[] = {&settings->network.ip, &settings->network.subnet, &settings->network.gateway, &settings->network.dns, &settings->ntp.server, &settings->ntp.server2};
 
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 6; i++) {
         int startPos = jsonData.indexOf(searchKeys[i]);
         if (startPos >= 0) {
             startPos = jsonData.indexOf("\"", startPos + searchKeys[i].length());
@@ -440,6 +444,21 @@ void IRIGWebServer::handleSaveConfigWebSocket(AsyncWebSocketClient *client, Stri
                 String portStr = jsonData.substring(colonPos + 1, commaPos);
                 portStr.trim();
                 settings->ntp.port = portStr.toInt();
+            }
+        }
+    }
+
+    // Handle ntpPort2
+    int port2Pos = jsonData.indexOf("\"ntpPort2\"");
+    if (port2Pos >= 0) {
+        int colonPos = jsonData.indexOf(":", port2Pos);
+        if (colonPos >= 0) {
+            int commaPos = jsonData.indexOf(",", colonPos);
+            if (commaPos == -1) commaPos = jsonData.indexOf("}", colonPos);
+            if (commaPos > colonPos) {
+                String portStr = jsonData.substring(colonPos + 1, commaPos);
+                portStr.trim();
+                settings->ntp.port2 = portStr.toInt();
             }
         }
     }
@@ -502,6 +521,16 @@ void IRIGWebServer::handleSaveConfigWebSocket(AsyncWebSocketClient *client, Stri
                                    jsonData.indexOf("\"dns\"") >= 0);
     if (networkSettingsChanged) {
         settings->setNetworkChangesFlag(true);
+    }
+
+    // Set NTP changes flag if NTP settings were updated
+    bool ntpSettingsChanged = (jsonData.indexOf("\"ntpServer\"") >= 0 ||
+                               jsonData.indexOf("\"ntpServer2\"") >= 0 ||
+                               jsonData.indexOf("\"ntpPort\"") >= 0 ||
+                               jsonData.indexOf("\"ntpPort2\"") >= 0 ||
+                               jsonData.indexOf("\"timeOffset\"") >= 0);
+    if (ntpSettingsChanged) {
+        settings->setNTPChangesFlag(true);
     }
 
     // Save settings to Preferences

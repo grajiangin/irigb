@@ -627,6 +627,17 @@
 
                 <div class="form-row">
                     <div class="form-group">
+                        <label for="ntpServer2">Secondary NTP Server</label>
+                        <input type="text" id="ntpServer2" placeholder="time.nist.gov">
+                    </div>
+                    <div class="form-group">
+                        <label for="ntpPort2">Secondary NTP Port</label>
+                        <input type="number" id="ntpPort2" value="123" min="1" max="65535">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
                         <label for="timeOffset">Time Offset (hours)</label>
                         <input type="number" id="timeOffset" value="0" min="-24" max="24" step="1">
                         <small>Range: -24 to +24 hours</small>
@@ -888,7 +899,9 @@
 
             // Update NTP config
             document.getElementById('ntpServer').value = config.ntpServer || '';
+            document.getElementById('ntpServer2').value = config.ntpServer2 || '';
             document.getElementById('ntpPort').value = config.ntpPort || 123;
+            document.getElementById('ntpPort2').value = config.ntpPort2 || 123;
 
             // Update time offset config
             document.getElementById('timeOffset').value = config.timeOffset || 0;
@@ -971,7 +984,9 @@
                 gateway: document.getElementById('gateway').value,
                 dns: document.getElementById('dns').value,
                 ntpServer: document.getElementById('ntpServer').value,
+                ntpServer2: document.getElementById('ntpServer2').value,
                 ntpPort: parseInt(document.getElementById('ntpPort').value) || 123,
+                ntpPort2: parseInt(document.getElementById('ntpPort2').value) || 123,
                 timeOffset: parseInt(document.getElementById('timeOffset').value) || 0
             };
 

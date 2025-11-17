@@ -35,19 +35,21 @@ bool Settings::load() {
     }
 
     // Load network settings
-    network.dhcp = preferences.getBool("dhcp", network.dhcp);
-    network.ip = preferences.getString("ip", network.ip);
-    network.subnet = preferences.getString("subnet", network.subnet);
-    network.gateway = preferences.getString("gateway", network.gateway);
-    network.dns = preferences.getString("dns", network.dns);
+    network.dhcp = preferences.getBool("dhcp",false);
+    network.ip = preferences.getString("ip","172.16.1.135");
+    network.subnet = preferences.getString("subnet","255.255.255.192");
+    network.gateway = preferences.getString("gateway","172.16.1.129");
+    network.dns = preferences.getString("dns","8.8.8.8");
 
     // Load NTP settings
-    ntp.server = preferences.getString("ntpServer", ntp.server);
-    ntp.port = preferences.getUShort("ntpPort", ntp.port);
-    ntp.timeOffset = preferences.getInt("timeOffset", ntp.timeOffset);
+    ntp.server = preferences.getString("ntpServer","10.6.110.150");
+    ntp.server2 = preferences.getString("ntpServer2","pool.ntp.org");
+    ntp.port = preferences.getUShort("ntpPort",123);
+    ntp.port2 = preferences.getUShort("ntpPort2",123);
+    ntp.timeOffset = preferences.getInt("timeOffset",7);
 
     // Load system settings
-    enabled = preferences.getBool("enabled", enabled);
+    enabled = preferences.getBool("enabled",true);
 
     // Load network changes flag
     network_changes_flag = preferences.getBool("netFlag", network_changes_flag);
@@ -69,7 +71,7 @@ bool Settings::load() {
 
     Serial.println("Settings loaded successfully");
     Serial.printf("Network: DHCP=%s, IP=%s\n", network.dhcp ? "true" : "false", network.ip.c_str());
-    Serial.printf("NTP: Server=%s, Port=%d, Offset=%d\n", ntp.server.c_str(), ntp.port, ntp.timeOffset);
+    Serial.printf("NTP: Server=%s, Server2=%s, Port=%d, Offset=%d\n", ntp.server.c_str(), ntp.server2.c_str(), ntp.port, ntp.timeOffset);
     Serial.printf("System: Enabled=%s\n", enabled ? "true" : "false");
     Serial.printf("Channels: 1=%d, 2=%d, 3=%d, 4=%d, 5=%d, 6=%d, 7=%d, 8=%d\n",
                   channel_1_mode, channel_2_mode, channel_3_mode, channel_4_mode,
@@ -119,7 +121,9 @@ bool Settings::save() {
 
     // Save NTP settings
     preferences.putString("ntpServer", ntp.server);
+    preferences.putString("ntpServer2", ntp.server2);
     preferences.putUShort("ntpPort", ntp.port);
+    preferences.putUShort("ntpPort2", ntp.port2);
     preferences.putInt("timeOffset", ntp.timeOffset);
 
     // Save system settings
@@ -163,7 +167,9 @@ Settings::NetworkConfig Settings::getDefaultNetwork() {
 Settings::NTPConfig Settings::getDefaultNTP() {
     NTPConfig config;
     config.server = "pool.ntp.org";
+    config.server2 = "time.nist.gov";
     config.port = 123;
+    config.port2 = 123;
     config.timeOffset = 0;
     return config;
 }

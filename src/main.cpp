@@ -10,6 +10,10 @@
 #include "server.h"
 #include "settings.h"
 #include "irigb.h"
+#include "decoder.h"
+
+extern void init_decoder();
+extern IRIGBDecoder* get_decoder();
 // Timer for 0.5ms ISR
 hw_timer_t *timer = NULL;
 
@@ -32,7 +36,7 @@ IRIGB irigb4(P4);
 IRIGB irigb5(P5);
 IRIGB irigb6(P6);
 IRIGB irigb7(P7);
-IRIGB irigb8(P8);
+// IRIGB irigb8(P8);
 
 uint8_t bit_counter = 0;
 void IRAM_ATTR onTimer()
@@ -48,7 +52,7 @@ void IRAM_ATTR onTimer()
     irigb5.update();
     irigb6.update();
     irigb7.update();
-    irigb8.update();
+    // irigb8.update();
     bit_counter++;
     if (bit_counter >= 100)
     {
@@ -71,14 +75,15 @@ void init_pins()
   pinMode(P5, OUTPUT);
   pinMode(P6, OUTPUT);
   pinMode(P7, OUTPUT);
-  pinMode(P8, OUTPUT);
+  // pinMode(P8, OUTPUT);
+  pinMode(P8, INPUT_PULLUP);
 }
 
 void ntp_task(void *param)
 {
   for (;;)
   {
- 
+
     if (ntp_update())
     {
      
@@ -102,7 +107,7 @@ void ntp_task(void *param)
       irigb5.encodeTimeIntoBits(irigTime, (int)(settings.ntp.timeOffset * 3600));
       irigb6.encodeTimeIntoBits(irigTime, (int)(settings.ntp.timeOffset * 3600));
       irigb7.encodeTimeIntoBits(irigTime, (int)(settings.ntp.timeOffset * 3600));
-      irigb8.encodeTimeIntoBits(irigTime, (int)(settings.ntp.timeOffset * 3600));
+      // irigb8.encodeTimeIntoBits(irigTime, (int)(settings.ntp.timeOffset * 3600));
       irig_available = true;
     }
     delay(300);
@@ -112,7 +117,9 @@ void ntp_task(void *param)
 void setup()
 {
   Serial.begin(115200);
+  
   init_pins();
+  delay(1000);
   irigb1.begin();
   irigb2.begin();
   irigb3.begin();
@@ -120,7 +127,7 @@ void setup()
   irigb5.begin();
   irigb6.begin();
   irigb7.begin();
-  irigb8.begin();
+  // irigb8.begin();
 
   // Initialize 0.5ms timer ISR
   timer = timerBegin(0, 80, true);             // Timer 0, prescaler 80 (1MHz), count up
@@ -140,8 +147,11 @@ void setup()
   if (!eth_init())
   {
     Serial.println("Failed to initialize ethernet hardware");
+    delay(10000);
   }
 
+
+  init_decoder();
   // Configure network using settings
   if (!eth_configure_network(&settings))
   {
@@ -165,6 +175,7 @@ void setup()
   }
 
   init_ntp();
+  // init_decoder();
 
   xTaskCreate(
       ntp_task,
@@ -176,7 +187,50 @@ void setup()
   );
 }
 
-void loop()
+void loop(){
+  NTPTime time = ntp_get_time();
+  auto decoder = get_decoder(); // Get decoder instance
+  if (decoder && decoder->data_available()) {
+    String frameData = decoder->get_data();
+    if (frameData.length() > 0) {
+      Serial.print("G:");
+      // Print with spaces every 10 characters for readability
+      for (int i = 0; i < frameData.length(); i++) {
+        if (i % 10 == 0 && i > 0) Serial.print(" ");
+        Serial.print(frameData[i]);
+      }
+      Serial.println();
+    }
+    
+    Serial.print("A:");
+    for(int i=0;i<100;i++)
+    {
+      if (i % 10 == 0 && i > 0) Serial.print(" ");
+      if(i==0||i==1||i%10==0) Serial.print("M");
+      else Serial.print(irigb1.bits_1[i]==0?'0':'1');
+    }
+    Serial.println();
+  }
+  if (ntp_valid)
+  {
+    display.print_display(time.day, time.hour, time.minute, time.second);
+    display.set_seconds_led(sec_blink);
+    display.set_minute_led(true);
+    display.set_hour_led(true);
+  }
+  else
+  {
+    display.print_display(0, 0, 0, 0);
+    display.set_seconds_led(false);
+    display.set_minute_led(false);
+    display.set_hour_led(false);
+  }
+  display.display();
+
+  delay(10); // Shorter delay for more responsive polling
+}
+
+void loop2()
 {
   NTPTime time = ntp_get_time();
   webServer.sendTimeUpdate(time.hour, time.minute, time.second, time.day);

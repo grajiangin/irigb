@@ -21,10 +21,11 @@ struct NTPTime {
 void ntp_begin();
 void ntp_begin(unsigned int port);
 bool ntp_update();
-bool ntp_forceUpdate();
+bool ntp_forceUpdate(unsigned int serverPort);
 bool ntp_isTimeSet();
 unsigned long ntp_getEpochTime();
 NTPTime ntp_get_time();
+String ntp_getCurrentServer();
 void ntp_setTimeOffset(int timeOffset);
 void ntp_setUpdateInterval(unsigned long updateInterval);
 void ntp_end();

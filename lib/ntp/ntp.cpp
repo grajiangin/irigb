@@ -11,14 +11,14 @@ IPAddress _poolServerIP;
 unsigned int _port = NTP_DEFAULT_LOCAL_PORT;
 unsigned int _serverPort = 123; // NTP server port, will be set from settings
 long _timeOffset = 3600; // Will be set from settings
-unsigned long _updateInterval = 60000; // 60 seconds
+unsigned long _updateInterval = 5000; // 10 seconds
 unsigned long _currentEpoc = 0;
 unsigned long _lastUpdate = 0;
 unsigned long _currentMilliseconds = 0;
 byte _packetBuffer[NTP_PACKET_SIZE];
 extern Settings settings;
 
-void sendNTPPacket() {
+void sendNTPPacket(unsigned int serverPort) {
     // set all bytes in the buffer to 0
     memset(_packetBuffer, 0, NTP_PACKET_SIZE);
     // Initialize values needed to form NTP request
@@ -34,7 +34,7 @@ void sendNTPPacket() {
 
     // all NTP fields have been given values, now
     // you can send a packet requesting a timestamp:
-    ntpUDP->beginPacket(_poolServerName.c_str(), _serverPort);
+    ntpUDP->beginPacket(_poolServerName.c_str(), serverPort);
     ntpUDP->write(_packetBuffer, NTP_PACKET_SIZE);
     ntpUDP->endPacket();
 }
@@ -49,13 +49,13 @@ void ntp_begin(unsigned int port) {
     _udpSetup = true;
 }
 
-bool ntp_forceUpdate() {
+bool ntp_forceUpdate(unsigned int serverPort) {
     // flush any existing packets
     // Debug: print current NTP server and port from settings before sending request
     while(ntpUDP->parsePacket() != 0)
         ntpUDP->flush();
 
-    sendNTPPacket();
+    sendNTPPacket(serverPort);
 
     // Wait till data is there or timeout...
     byte timeout = 0;
@@ -63,7 +63,10 @@ bool ntp_forceUpdate() {
     do {
         delay(10);
         cb = ntpUDP->parsePacket();
-        if (timeout > 100) return false; // timeout after 1000 ms
+        if (timeout > 100){
+            
+            return false; // timeout after 1000 ms
+        }
         timeout++;
     } while (cb == 0);
 
@@ -86,18 +89,38 @@ bool ntp_forceUpdate() {
     _currentMilliseconds = (fracSeconds * 1000ULL) >> 32;
 
     _currentEpoc = secsSince1900 - SEVENZYYEARS;
+    
     return true;  // return true after successful update
 }
 
 bool ntp_update() {
     if ((millis() - _lastUpdate >= _updateInterval)     // Update after _updateInterval
-        || _lastUpdate == 0) {  
-        _timeOffset=settings.ntp.timeOffset; 
+        || _lastUpdate == 0) {
+        _timeOffset=settings.ntp.timeOffset;
         _port=settings.ntp.port;
-        _poolServerName=settings.ntp.server;                        // Update if there was no update yet.
         if (!_udpSetup || _port != NTP_DEFAULT_LOCAL_PORT) ntp_begin(_port); // setup the UDP client if needed
-        return ntp_forceUpdate();
+
+        // Try primary NTP server first
+        _poolServerName=settings.ntp.server;
+        // Serial.printf("NTP: Trying primary server: %s:%d\n", _poolServerName.c_str(), settings.ntp.port);
+        if (ntp_forceUpdate(settings.ntp.port)) {
+            return true;
+        }
+
+        // If primary fails and secondary server is configured, try secondary
+        if (settings.ntp.server2.length() > 0 && settings.ntp.server2 != settings.ntp.server) {
+            _poolServerName=settings.ntp.server2;
+            // Serial.printf("NTP: Primary failed, trying secondary server: %s:%d\n", _poolServerName.c_str(), settings.ntp.port2);
+            if (ntp_forceUpdate(settings.ntp.port2)) {
+                // Serial.println("NTP: Secondary server successful");
+                return true;
+            }
+        }
+
+        Serial.println("NTP: Both servers failed");
+        return false;
     }
+    
     return false;   // return false if update does not occur
 }
 
@@ -128,6 +151,10 @@ void ntp_setUpdateInterval(unsigned long updateInterval) {
     _updateInterval = updateInterval;
 }
 
+
+String ntp_getCurrentServer() {
+    return _poolServerName;
+}
 
 NTPTime ntp_get_time() {
     NTPTime timeStruct = {0}; // Initialize to zero
@@ -172,9 +199,13 @@ void init_ntp() {
     _serverPort = settings.ntp.port;
     _timeOffset = settings.ntp.timeOffset;
 
-    Serial.printf("NTP Server: %s\n", _poolServerName.c_str());
-    Serial.printf("NTP Port: %d\n", _serverPort);
-    Serial.printf("NTP Time Offset: %d seconds\n", _timeOffset);
+    Serial.printf("NTP Primary Server: %s:%d\n", settings.ntp.server.c_str(), settings.ntp.port);
+    if (settings.ntp.server2.length() > 0) {
+        Serial.printf("NTP Secondary Server: %s:%d\n", settings.ntp.server2.c_str(), settings.ntp.port2);
+    } else {
+        Serial.println("NTP Secondary Server: Not configured");
+    }
+    Serial.printf("NTP Time Offset: %d hours\n", _timeOffset);
     ntp_begin();
-    ntp_setUpdateInterval(60000);
+    ntp_setUpdateInterval(5000);
 }

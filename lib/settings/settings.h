@@ -27,7 +27,9 @@ public:
     // NTP settings
     struct NTPConfig {
         String server;
+        String server2; // Second NTP server for redundancy
         uint16_t port;
+        uint16_t port2; // Port for second NTP server
         int32_t timeOffset; // Time offset in hours
     } ntp;
 
