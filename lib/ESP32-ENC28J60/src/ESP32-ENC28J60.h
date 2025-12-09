@@ -60,6 +60,7 @@ class ENC28J60Class {
         IPv6Address localIPv6();
 
         bool reset();
+        void deinit();
 
         IPAddress localIP();
         IPAddress subnetMask();

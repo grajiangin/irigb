@@ -27,7 +27,9 @@ esp_eth_mac_t* enc28j60_new_mac( spi_device_handle_t *spi_handle, int INT_GPIO )
 
 esp_eth_mac_t* enc28j60_begin(int MISO_GPIO, int MOSI_GPIO, int SCLK_GPIO, int CS_GPIO, int INT_GPIO, int SPI_CLOCK_MHZ, int SPI_HOST)
 {
-    if(ESP_OK !=gpio_install_isr_service(0)) return NULL;
+    // Try to install ISR service, but ignore if already installed (from previous init)
+    esp_err_t isr_err = gpio_install_isr_service(0);
+    if(ESP_OK != isr_err && ESP_ERR_INVALID_STATE != isr_err) return NULL;
     /* ENC28J60 ethernet driver is based on spi driver */
     spi_bus_config_t buscfg =
     {
