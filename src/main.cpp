@@ -53,7 +53,7 @@ void IRAM_ATTR onTimer()
     irigb5.update();
     irigb6.update();
     irigb7.update();
-    // irigb8.update();
+    irigb8.update();
     bit_counter++;
     if (bit_counter >= 100)
     {
@@ -76,8 +76,8 @@ void init_pins()
   pinMode(P5, OUTPUT);
   pinMode(P6, OUTPUT);
   pinMode(P7, OUTPUT);
-  // pinMode(P8, OUTPUT);
-  pinMode(P8, INPUT_PULLUP);
+  pinMode(P8, OUTPUT);
+  // pinMode(P8, INPUT_PULLUP);
 }
 
 
