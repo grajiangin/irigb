@@ -260,25 +260,25 @@ static void eth_monitor_task(void *parameter) {
             eth_reinit_flag=false;
             reload_settings=true;
 
-            // Hardware reset the ENC28J60
-            Serial.println("Performing hardware reset...");
+            // Hardware reset the ENC28J60 chip
+            Serial.println("Performing hardware reset of ENC28J60 chip...");
             digitalWrite(ETH_RST, LOW);
-            delay(100);
+            delay(200);
             digitalWrite(ETH_RST, HIGH);
-            delay(100);
+            delay(500); // Give chip time to restart and stabilize
 
-            // Properly deinitialize and reinitialize ethernet
-            Serial.println("Deinitializing ethernet driver...");
-            ETH.deinit();
-            delay(100);
-
-            Serial.println("Reinitializing ethernet...");
-            if (!eth_init()) {
-                Serial.println("✗ Ethernet reinitialization failed");
+            // Use the driver's reset() method which properly stops/starts the driver
+            // This avoids resource conflicts from full deinitialization
+            Serial.println("Resetting ethernet driver...");
+            if (ETH.reset()) {
+                Serial.println("✓ Ethernet restart successful");
             } else {
-                Serial.println("✓ Ethernet reinitialization successful");
+                Serial.println("✗ Ethernet reset failed");
             }
 
+            // Reset link status flag to allow event handler to update it
+            _custom_eth_link_up = false;
+            
             Serial.println("======Restart Ethernet Module END========");
         }
 

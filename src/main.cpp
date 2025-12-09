@@ -95,7 +95,7 @@ void ntp_task(void *param)
       Serial.printf("NTP counter: %i\n",ntp_counter());
       last_debug=millis();
     }
-    if(millis()-last_evaluate>60000) //1 minute 
+    if(millis()-last_evaluate>30000) //1 minute 
     {
       last_evaluate=millis();
       if(ntp_counter()==0)
