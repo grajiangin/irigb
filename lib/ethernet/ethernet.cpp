@@ -360,7 +360,7 @@ bool eth_start_monitoring(Settings* settings) {
     BaseType_t result = xTaskCreate(
         eth_monitor_task,           // Task function
         "eth_monitor",              // Task name
-        4096,                       // Stack size (bytes)
+        8192,                       // Stack size (bytes) - increased from 4096 to prevent overflow
         settings,                   // Task parameter
         1,                          // Task priority (low priority)
         &_eth_monitor_task_handle   // Task handle
