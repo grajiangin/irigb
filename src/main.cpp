@@ -29,6 +29,7 @@ bool irig_available = false;
 bool irig_enabled = false;
 bool ntp_valid = false;
 extern bool eth_reinit_flag;
+extern bool ntp_ok;
 
 IRIGB irigb1(P1);
 IRIGB irigb2(P2);
