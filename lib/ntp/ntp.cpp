@@ -2,6 +2,7 @@
 #include <Arduino.h>
 #include <string.h>
 #include "settings.h"
+#include "ethernet.h"
 
 // Global NTP variables
 WiFiUDP *ntpUDP;
@@ -104,6 +105,13 @@ bool ntp_forceUpdate(unsigned int serverPort) {
 bool ntp_update() {
     if ((millis() - _lastUpdate >= _updateInterval)     // Update after _updateInterval
         || _lastUpdate == 0) {
+        
+        // Check if ethernet link is up before attempting NTP request
+        if (!eth_link_up()) {
+            // Serial.println("NTP: Skipping update, ethernet link is down");
+            return false;
+        }
+        
         _timeOffset=settings.ntp.timeOffset;
         _port=settings.ntp.port;
         if (!_udpSetup || _port != NTP_DEFAULT_LOCAL_PORT) ntp_begin(_port); // setup the UDP client if needed

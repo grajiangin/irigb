@@ -260,21 +260,25 @@ static void eth_monitor_task(void *parameter) {
             eth_reinit_flag=false;
             reload_settings=true;
 
-            // Hardware reset the ENC28J60 chip
-            Serial.println("Performing hardware reset of ENC28J60 chip...");
+            // Proper reset sequence:
+            // 1. Hardware reset the chip (clears chip state)
+            // 2. Driver reset (stop + start, which reinitializes chip registers)
+            
+            Serial.println("Step 1: Hardware reset ENC28J60 chip...");
             digitalWrite(ETH_RST, LOW);
-            delay(200);
+            delay(250); // Hold reset longer for complete chip reset
             digitalWrite(ETH_RST, HIGH);
-            delay(500); // Give chip time to restart and stabilize
+            delay(1000); // Give chip extra time to stabilize after reset
 
-            // Use the driver's reset() method which properly stops/starts the driver
-            // This avoids resource conflicts from full deinitialization
-            Serial.println("Resetting ethernet driver...");
+            // Now reset the driver (stop + start) to reinitialize the chip
+            Serial.println("Step 2: Resetting ethernet driver (stop + start)...");
             if (ETH.reset()) {
-                Serial.println("✓ Ethernet restart successful");
+                Serial.println("✓ Ethernet driver reset successful");
             } else {
-                Serial.println("✗ Ethernet reset failed");
+                Serial.println("✗ Ethernet driver reset failed");
             }
+            
+            delay(200); // Allow driver to fully initialize
 
             // Reset link status flag to allow event handler to update it
             _custom_eth_link_up = false;
