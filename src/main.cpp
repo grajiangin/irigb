@@ -36,7 +36,7 @@ IRIGB irigb4(P4);
 IRIGB irigb5(P5);
 IRIGB irigb6(P6);
 IRIGB irigb7(P7);
-// IRIGB irigb8(P8);
+IRIGB irigb8(P8);
 
 uint8_t bit_counter = 0;
 void IRAM_ATTR onTimer()
@@ -100,14 +100,15 @@ void ntp_task(void *param)
       irigTime.hour = currentTime.hour;
       irigTime.day = currentTime.day;
       irigTime.year = currentTime.year;
-      irigb1.encodeTimeIntoBits(irigTime, (int)(settings.ntp.timeOffset * 3600));
-      irigb2.encodeTimeIntoBits(irigTime, (int)(settings.ntp.timeOffset * 3600));
-      irigb3.encodeTimeIntoBits(irigTime, (int)(settings.ntp.timeOffset * 3600));
-      irigb4.encodeTimeIntoBits(irigTime, (int)(settings.ntp.timeOffset * 3600));
-      irigb5.encodeTimeIntoBits(irigTime, (int)(settings.ntp.timeOffset * 3600));
-      irigb6.encodeTimeIntoBits(irigTime, (int)(settings.ntp.timeOffset * 3600));
-      irigb7.encodeTimeIntoBits(irigTime, (int)(settings.ntp.timeOffset * 3600));
-      // irigb8.encodeTimeIntoBits(irigTime, (int)(settings.ntp.timeOffset * 3600));
+      // irigb1.encodeTimeIntoBits(irigTime, 7);
+      irigb1.encodeTimeIntoBits(irigTime, (int)(settings.ntp.timeOffset));
+      irigb2.encodeTimeIntoBits(irigTime, (int)(settings.ntp.timeOffset));
+      irigb3.encodeTimeIntoBits(irigTime, (int)(settings.ntp.timeOffset));
+      irigb4.encodeTimeIntoBits(irigTime, (int)(settings.ntp.timeOffset));
+      irigb5.encodeTimeIntoBits(irigTime, (int)(settings.ntp.timeOffset));
+      irigb6.encodeTimeIntoBits(irigTime, (int)(settings.ntp.timeOffset));
+      irigb7.encodeTimeIntoBits(irigTime, (int)(settings.ntp.timeOffset));
+      irigb8.encodeTimeIntoBits(irigTime, (int)(settings.ntp.timeOffset));
       irig_available = true;
     }
     delay(300);
@@ -127,7 +128,7 @@ void setup()
   irigb5.begin();
   irigb6.begin();
   irigb7.begin();
-  // irigb8.begin();
+  irigb8.begin();
 
   // Initialize 0.5ms timer ISR
   timer = timerBegin(0, 80, true);             // Timer 0, prescaler 80 (1MHz), count up
@@ -151,7 +152,7 @@ void setup()
   }
 
 
-  init_decoder();
+  // init_decoder();
   // Configure network using settings
   if (!eth_configure_network(&settings))
   {
@@ -187,7 +188,7 @@ void setup()
   );
 }
 
-void loop(){
+void loop2(){
   NTPTime time = ntp_get_time();
   auto decoder = get_decoder(); // Get decoder instance
   if (decoder && decoder->data_available()) {
@@ -230,7 +231,7 @@ void loop(){
   delay(10); // Shorter delay for more responsive polling
 }
 
-void loop2()
+void loop()
 {
   NTPTime time = ntp_get_time();
   webServer.sendTimeUpdate(time.hour, time.minute, time.second, time.day);

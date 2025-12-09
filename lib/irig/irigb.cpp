@@ -189,6 +189,7 @@ void IRIGB::encodeTimeIntoBits(const IrigTime &time, bool *bits, int timeOffsetH
   bits[42] = ((time.day / 100) & 0x02) >> 1;
 
   // Encode year (BCD) - Bits 51-58
+  
   bits[51] = (time.year % 10) & 0x01;
   bits[52] = ((time.year % 10) & 0x02) >> 1;
   bits[53] = ((time.year % 10) & 0x04) >> 2;

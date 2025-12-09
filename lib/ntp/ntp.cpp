@@ -182,7 +182,8 @@ NTPTime ntp_get_time() {
         daysSinceEpoch -= daysInYear;
         year++;
     }
-    timeStruct.day = dayOfYear+1;
+// Serial.printf("dayOfYear: %i year=%i\n", dayOfYear, year);
+    timeStruct.day = dayOfYear;
     timeStruct.year = year;
     timeStruct.millisecond = _currentMilliseconds;
 

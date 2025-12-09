@@ -9,7 +9,7 @@ struct IrigTime {
   uint8_t minute;   // 0-59
   uint8_t hour;     // 0-23
   uint16_t day;     // 1-366
-  uint8_t year;      // 0-99
+  uint16_t year;      // 0-99
 };
 
 
