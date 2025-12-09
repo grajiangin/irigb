@@ -101,7 +101,7 @@ void ntp_task(void *param)
       {
         eth_reinit_flag=true;
         // do reset ETH module
-        restart_counter++:
+        restart_counter++;
         if(restart_counter>5)
         {
           esp_restart();
