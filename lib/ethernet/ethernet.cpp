@@ -259,16 +259,22 @@ static void eth_monitor_task(void *parameter) {
             Serial.println("======Restart Ethernet Module START======");
             eth_reinit_flag=false;
             reload_settings=true;
-            // eth_init();
 
- // Reset the ENC28J60
-                digitalWrite(ETH_RST, LOW);
-                delay(100);
-                digitalWrite(ETH_RST, HIGH);
-                delay(100);
+            // Hardware reset the ENC28J60
+            Serial.println("Performing hardware reset...");
+            digitalWrite(ETH_RST, LOW);
+            delay(100);
+            digitalWrite(ETH_RST, HIGH);
+            delay(100);
 
+            // Software reset and reinitialize via SPI
+            Serial.println("Performing software reset and reinitialization...");
+            if (!ETH.reset()) {
+                Serial.println("✗ Ethernet reset failed");
+            } else {
+                Serial.println("✓ Ethernet reset successful");
+            }
 
-            // delay(1000);
             Serial.println("======Restart Ethernet Module END========");
         }
 
