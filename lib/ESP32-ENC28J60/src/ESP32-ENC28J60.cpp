@@ -74,7 +74,6 @@ ENC28J60Class::ENC28J60Class()
     :initialized(false)
     ,staticIP(false)
      ,eth_handle(NULL)
-     ,eth_netif(NULL)
      ,started(false)
     ,eth_link(ETH_LINK_DOWN)
 {
@@ -82,10 +81,6 @@ ENC28J60Class::ENC28J60Class()
 
 ENC28J60Class::~ENC28J60Class()
 {
-    if (eth_netif != NULL) {
-        esp_netif_destroy(eth_netif);
-        eth_netif = NULL;
-    }
 }
 
 //bool ENC28J60Class::begin(uint8_t phy_addr, int power, int mdc, int mdio, eth_phy_type_t type, eth_clock_mode_t clock_mode, bool use_mac_from_efuse)
@@ -103,7 +98,7 @@ bool ENC28J60Class::begin(int MISO_GPIO, int MOSI_GPIO, int SCLK_GPIO, int CS_GP
     tcpip_adapter_set_default_eth_handlers();
 
     esp_netif_config_t cfg = ESP_NETIF_DEFAULT_ETH();
-    eth_netif = esp_netif_new(&cfg);
+    esp_netif_t *eth_netif = esp_netif_new(&cfg);
 
     esp_eth_mac_t *eth_mac = enc28j60_begin(MISO_GPIO, MOSI_GPIO, SCLK_GPIO, CS_GPIO, INT_GPIO, SPI_CLOCK_MHZ, SPI_HOST);
 
@@ -144,6 +139,9 @@ bool ENC28J60Class::begin(int MISO_GPIO, int MOSI_GPIO, int SCLK_GPIO, int CS_GP
 
     /* attach Ethernet driver to TCP/IP stack */
     if(esp_netif_attach(eth_netif, esp_eth_new_netif_glue(eth_handle)) != ESP_OK){
+        esp_netif_destroy(eth_netif);
+        return false;
+    }else{
         log_e("esp_netif_attach failed");
         return false;
     }
@@ -347,12 +345,6 @@ void ENC28J60Class::deinit()
         initialized = false;
         started = false;
         eth_link = ETH_LINK_DOWN;
-    }
-
-    // Clean up netif if it exists
-    if (eth_netif != NULL) {
-        esp_netif_destroy(eth_netif);
-        eth_netif = NULL;
     }
 
     // Note: GPIO ISR service cleanup is handled by the low-level driver
