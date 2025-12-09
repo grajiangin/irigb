@@ -241,17 +241,9 @@ void loop()
   display.set_network_led(eth_link_up());
   if (sec_blink)
   {
-    webServer.update_led(settings.enabled, ntp_got_data);
-    if (ntp_got_data)
-    {
-      ntp_got_data = false;
-      display.set_ntp_led(true);
-    }
-    else
-    {
-      display.set_ntp_led(false);
-    }
+    webServer.update_led(settings.enabled, ntp_ok);
   }
+  display.set_ntp_led(ntp_ok);
   display.display();
   delay(300);
   if (millis() - last_blink > 500)
