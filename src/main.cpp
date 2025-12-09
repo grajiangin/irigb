@@ -221,7 +221,7 @@ void setup()
   xTaskCreate(
       ntp_task,
       "ntp_task", // Task name
-      4096,       // Stack size
+      4096*2,       // Stack size
       nullptr,    // Parameter
       1,          // Priority
       nullptr     // Task handle
@@ -229,48 +229,6 @@ void setup()
   printTaskStackInfo();
 }
 
-void loop2(){
-  NTPTime time = ntp_get_time();
-  auto decoder = get_decoder(); // Get decoder instance
-  if (decoder && decoder->data_available()) {
-    String frameData = decoder->get_data();
-    if (frameData.length() > 0) {
-      Serial.print("G:");
-      // Print with spaces every 10 characters for readability
-      for (int i = 0; i < frameData.length(); i++) {
-        if (i % 10 == 0 && i > 0) Serial.print(" ");
-        Serial.print(frameData[i]);
-      }
-      Serial.println();
-    }
-    
-    Serial.print("A:");
-    for(int i=0;i<100;i++)
-    {
-      if (i % 10 == 0 && i > 0) Serial.print(" ");
-      if(i==0||i==1||i%10==0) Serial.print("M");
-      else Serial.print(irigb1.bits_1[i]==0?'0':'1');
-    }
-    Serial.println();
-  }
-  if (ntp_valid)
-  {
-    display.print_display(time.day, time.hour, time.minute, time.second);
-    display.set_seconds_led(sec_blink);
-    display.set_minute_led(true);
-    display.set_hour_led(true);
-  }
-  else
-  {
-    display.print_display(0, 0, 0, 0);
-    display.set_seconds_led(false);
-    display.set_minute_led(false);
-    display.set_hour_led(false);
-  }
-  display.display();
-
-  delay(10); // Shorter delay for more responsive polling
-}
 
 
 
