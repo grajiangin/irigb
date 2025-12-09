@@ -244,7 +244,7 @@ void loop()
   {
     webServer.update_led(settings.enabled, ntp_ok);
   }
-  display.set_ntp_led(ntp_ok);
+  display.set_ntp_led(ntp_ok && sec_blink);
   display.display();
   delay(300);
   if (millis() - last_blink > 500)
