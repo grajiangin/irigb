@@ -146,6 +146,15 @@ void ntp_task(void *param)
   }
 }
 
+void printTaskStackInfo() {
+  char taskList[400];
+  vTaskList(taskList);
+  Serial.println("=== Task Stack Info ===");
+  Serial.println(taskList);
+  Serial.println("======================");
+}
+
+
 void setup()
 {
   Serial.begin(115200);
@@ -217,6 +226,7 @@ void setup()
       1,          // Priority
       nullptr     // Task handle
   );
+  printTaskStackInfo();
 }
 
 void loop2(){
@@ -262,6 +272,8 @@ void loop2(){
   delay(10); // Shorter delay for more responsive polling
 }
 
+
+
 void loop()
 {
   NTPTime time = ntp_get_time();
@@ -302,6 +314,7 @@ void loop()
   if (millis() - last_blink > 500)
   {
     last_blink = millis();
+    
     sec_blink = !sec_blink;
   }
 }
