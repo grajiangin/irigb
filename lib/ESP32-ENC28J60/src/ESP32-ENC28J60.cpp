@@ -86,6 +86,16 @@ ENC28J60Class::~ENC28J60Class()
 //bool ENC28J60Class::begin(uint8_t phy_addr, int power, int mdc, int mdio, eth_phy_type_t type, eth_clock_mode_t clock_mode, bool use_mac_from_efuse)
 bool ENC28J60Class::begin(int MISO_GPIO, int MOSI_GPIO, int SCLK_GPIO, int CS_GPIO, int INT_GPIO, int SPI_CLOCK_MHZ, int SPI_HOST, bool use_mac_from_efuse)
 {
+    // Clean up any previous ethernet state
+    if (eth_handle != NULL) {
+        esp_eth_stop(eth_handle);
+        esp_eth_driver_uninstall(eth_handle);
+        eth_handle = NULL;
+        initialized = false;
+        started = false;
+        eth_link = ETH_LINK_DOWN;
+    }
+
     tcpipInit();
 
     uint8_t ENC28J60_Default_Mac[6] = { 0x02, 0x00, 0x00, 0x12, 0x34, 0x56 };
@@ -139,10 +149,8 @@ bool ENC28J60Class::begin(int MISO_GPIO, int MOSI_GPIO, int SCLK_GPIO, int CS_GP
 
     /* attach Ethernet driver to TCP/IP stack */
     if(esp_netif_attach(eth_netif, esp_eth_new_netif_glue(eth_handle)) != ESP_OK){
-        esp_netif_destroy(eth_netif);
-        return false;
-    }else{
         log_e("esp_netif_attach failed");
+        esp_netif_destroy(eth_netif);
         return false;
     }
 
