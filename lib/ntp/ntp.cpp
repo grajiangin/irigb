@@ -17,6 +17,14 @@ unsigned long _lastUpdate = 0;
 unsigned long _currentMilliseconds = 0;
 byte _packetBuffer[NTP_PACKET_SIZE];
 extern Settings settings;
+int _ntp_counter=0;
+
+int ntp_counter(){
+    return _ntp_counter;
+}
+void ntp_reset_counter(){
+    _ntp_counter=0;
+}
 
 void sendNTPPacket(unsigned int serverPort) {
     // set all bytes in the buffer to 0
@@ -104,6 +112,7 @@ bool ntp_update() {
         _poolServerName=settings.ntp.server;
         // Serial.printf("NTP: Trying primary server: %s:%d\n", _poolServerName.c_str(), settings.ntp.port);
         if (ntp_forceUpdate(settings.ntp.port)) {
+            _ntp_counter++;
             return true;
         }
 
@@ -112,6 +121,7 @@ bool ntp_update() {
             _poolServerName=settings.ntp.server2;
             // Serial.printf("NTP: Primary failed, trying secondary server: %s:%d\n", _poolServerName.c_str(), settings.ntp.port2);
             if (ntp_forceUpdate(settings.ntp.port2)) {
+                _ntp_counter++;
                 // Serial.println("NTP: Secondary server successful");
                 return true;
             }

@@ -29,7 +29,8 @@ String ntp_getCurrentServer();
 void ntp_setTimeOffset(int timeOffset);
 void ntp_setUpdateInterval(unsigned long updateInterval);
 void ntp_end();
-
+int ntp_counter();
+void ntp_reset_counter();
 // Initialization function
 void init_ntp();
 

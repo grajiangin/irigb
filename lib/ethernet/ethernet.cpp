@@ -23,7 +23,7 @@
 
 // Global variable to track link status (workaround for library bug)
 static bool _custom_eth_link_up = false;
-
+bool eth_reinit_flag=false;
 // Ethernet monitoring task variables
 static TaskHandle_t _eth_monitor_task_handle = NULL;
 static bool _eth_monitor_running = false;
@@ -58,9 +58,9 @@ bool eth_init() {
     
     // Reset the ENC28J60
     digitalWrite(ETH_RST, LOW);
-    delay(10);
+    delay(100);
     digitalWrite(ETH_RST, HIGH);
-    delay(10);
+    delay(100);
     
     // Try to initialize the ENC28J60
     bool result = ETH.begin(ETH_MISO, ETH_MOSI, ETH_SCLK, ETH_CS, ETH_INT, SPI_CLOCK_MHZ, SPI_HOST);
@@ -220,15 +220,17 @@ static void eth_monitor_task(void *parameter) {
     TickType_t last_wake_time = xTaskGetTickCount();
 
     Serial.println("Ethernet monitoring task started");
-
+    bool reload_settings=false;
     while (_eth_monitor_running) {
+
+        
         // Check ethernet link status
         eth_update_link_status();
 
         // Check for network configuration changes via flag
-        if (settings->getNetworkChangesFlag()) {
+        if (settings->getNetworkChangesFlag() || reload_settings) {
             Serial.println("Network changes flag detected, reloading settings...");
-
+            reload_settings=false;
             // Reload settings to get the updated network configuration
             if (settings->load()) {
                 if (eth_network_settings_changed(settings)) {
@@ -251,6 +253,15 @@ static void eth_monitor_task(void *parameter) {
             // Clear the changes flag
             settings->setNetworkChangesFlag(false);
             Serial.println("Network changes flag cleared");
+        }
+        if(eth_reinit_flag)
+        {
+            Serial.println("======Restart Ethernet Module START======");
+            eth_reinit_flag=false;
+            reload_settings=true;
+            eth_init();
+            delay(1000);
+            Serial.println("======Restart Ethernet Module END========");
         }
 
         // Wait for next iteration (100ms)

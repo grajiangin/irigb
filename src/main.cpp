@@ -28,6 +28,7 @@ bool wclk_state = false;
 bool irig_available = false;
 bool irig_enabled = false;
 bool ntp_valid = false;
+extern bool eth_reinit_flag;
 
 IRIGB irigb1(P1);
 IRIGB irigb2(P2);
@@ -79,10 +80,39 @@ void init_pins()
   pinMode(P8, INPUT_PULLUP);
 }
 
+
+
 void ntp_task(void *param)
 {
+  unsigned long last_evaluate =millis();
+  unsigned long last_debug =millis();
+  uint8_t restart_counter=0;
   for (;;)
   {
+
+    if(millis()-last_debug>1000)
+    {
+      Serial.printf("NTP counter: %i\n",ntp_counter());
+    }
+    if(millis()-last_evaluate>60000) //1 minute 
+    {
+      last_evaluate=millis();
+      if(ntp_counter()==0)
+      {
+        eth_reinit_flag=true;
+        // do reset ETH module
+        restart_counter++:
+        if(restart_counter>5)
+        {
+          esp_restart();
+        }
+      }
+      else 
+      {
+        restart_counter=0;
+      }
+      ntp_reset_counter();
+    }
 
     if (ntp_update())
     {
