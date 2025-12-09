@@ -267,13 +267,14 @@ static void eth_monitor_task(void *parameter) {
             digitalWrite(ETH_RST, HIGH);
             delay(100);
 
-            // Software reset and reinitialize via SPI
-            Serial.println("Performing software reset and reinitialization...");
-            if (!ETH.reset()) {
-                Serial.println("✗ Ethernet reset failed");
-            } else {
-                Serial.println("✓ Ethernet reset successful");
-            }
+            eth_init();
+            // // Software reset and reinitialize via SPI
+            // Serial.println("Performing software reset and reinitialization...");
+            // if (!ETH.reset()) {
+            //     Serial.println("✗ Ethernet reset failed");
+            // } else {
+            //     Serial.println("✓ Ethernet reset successful");
+            // }
 
             Serial.println("======Restart Ethernet Module END========");
         }
