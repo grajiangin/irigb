@@ -146,13 +146,6 @@ void ntp_task(void *param)
   }
 }
 
-void printTaskStackInfo() {
-  char taskList[400];
-  vTaskList(taskList);
-  Serial.println("=== Task Stack Info ===");
-  Serial.println(taskList);
-  Serial.println("======================");
-}
 
 
 void setup()
@@ -226,7 +219,7 @@ void setup()
       1,          // Priority
       nullptr     // Task handle
   );
-  printTaskStackInfo();
+  
 }
 
 
