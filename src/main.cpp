@@ -95,18 +95,12 @@ void ntp_task(void *param)
       Serial.printf("NTP counter: %i\n",ntp_counter());
       last_debug=millis();
     }
-    if(millis()-last_evaluate>30000) //1 minute 
+    if(millis()-last_evaluate>60000*5) //1 minute 
     {
       last_evaluate=millis();
       if(ntp_counter()==0)
       {
-        eth_reinit_flag=true;
-        // do reset ETH module
-        restart_counter++;
-        if(restart_counter>5)
-        {
-          esp_restart();
-        }
+        esp_restart();
       }
       else 
       {
@@ -117,10 +111,8 @@ void ntp_task(void *param)
 
     if (ntp_update())
     {
-     
       ntp_valid=true;
       ntp_got_data=true;
-   
     }
     if (ntp_valid)
     {
