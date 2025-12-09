@@ -259,8 +259,16 @@ static void eth_monitor_task(void *parameter) {
             Serial.println("======Restart Ethernet Module START======");
             eth_reinit_flag=false;
             reload_settings=true;
-            eth_init();
-            delay(1000);
+            // eth_init();
+
+ // Reset the ENC28J60
+                digitalWrite(ETH_RST, LOW);
+                delay(100);
+                digitalWrite(ETH_RST, HIGH);
+                delay(100);
+
+
+            // delay(1000);
             Serial.println("======Restart Ethernet Module END========");
         }
 
