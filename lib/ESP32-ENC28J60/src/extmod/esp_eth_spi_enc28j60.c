@@ -39,7 +39,9 @@ esp_eth_mac_t* enc28j60_begin(int MISO_GPIO, int MOSI_GPIO, int SCLK_GPIO, int C
         .quadwp_io_num = -1,
         .quadhd_io_num = -1,
     };
-    if( ESP_OK != spi_bus_initialize( SPI_HOST, &buscfg, SPI_DMA_CH_AUTO )) return NULL;
+    // Try to initialize SPI bus, ignore if already initialized
+    esp_err_t spi_err = spi_bus_initialize( SPI_HOST, &buscfg, SPI_DMA_CH_AUTO );
+    if( ESP_OK != spi_err && ESP_ERR_INVALID_STATE != spi_err) return NULL;
 
     spi_device_interface_config_t devcfg =
     {

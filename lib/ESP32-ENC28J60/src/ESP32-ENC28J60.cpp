@@ -38,6 +38,7 @@ extern "C" {
 
 #include "lwip/err.h"
 #include "lwip/dns.h"
+#include "esp_netif.h"
 
 extern void tcpipInit();
 
@@ -86,14 +87,10 @@ ENC28J60Class::~ENC28J60Class()
 //bool ENC28J60Class::begin(uint8_t phy_addr, int power, int mdc, int mdio, eth_phy_type_t type, eth_clock_mode_t clock_mode, bool use_mac_from_efuse)
 bool ENC28J60Class::begin(int MISO_GPIO, int MOSI_GPIO, int SCLK_GPIO, int CS_GPIO, int INT_GPIO, int SPI_CLOCK_MHZ, int SPI_HOST, bool use_mac_from_efuse)
 {
-    // Clean up any previous ethernet state
+    // Don't try to cleanup here - it should be done via deinit() before calling begin()
     if (eth_handle != NULL) {
-        esp_eth_stop(eth_handle);
-        esp_eth_driver_uninstall(eth_handle);
-        eth_handle = NULL;
-        initialized = false;
-        started = false;
-        eth_link = ETH_LINK_DOWN;
+        log_w("begin() called with existing eth_handle - call deinit() first");
+        return false;
     }
 
     tcpipInit();
@@ -342,11 +339,24 @@ bool ENC28J60Class::reset()
 void ENC28J60Class::deinit()
 {
     if (eth_handle != NULL) {
-        // Stop the ethernet driver
+        // Stop the ethernet driver first
         esp_eth_stop(eth_handle);
+        
+        // Small delay to allow driver to fully stop
+        delay(100);
 
-        // Uninstall the ethernet driver
-        esp_eth_driver_uninstall(eth_handle);
+        // Get and destroy the netif BEFORE uninstalling the driver
+        // This releases the reference count
+        esp_netif_t *eth_netif = esp_netif_get_handle_from_ifkey("ETH_DEF");
+        if (eth_netif != NULL) {
+            esp_netif_destroy(eth_netif);
+        }
+
+        // Now we can safely uninstall the ethernet driver
+        esp_err_t err = esp_eth_driver_uninstall(eth_handle);
+        if (err != ESP_OK) {
+            log_w("esp_eth_driver_uninstall failed: %d", err);
+        }
 
         // Clear the handle
         eth_handle = NULL;
@@ -355,8 +365,8 @@ void ENC28J60Class::deinit()
         eth_link = ETH_LINK_DOWN;
     }
 
-    // Note: GPIO ISR service cleanup is handled by the low-level driver
-    // when esp_eth_driver_uninstall is called
+    // Note: GPIO ISR service is system-wide and persists
+    // SPI bus cleanup would break other SPI devices, so we leave it initialized
 }
 
 IPv6Address ENC28J60Class::localIPv6()
