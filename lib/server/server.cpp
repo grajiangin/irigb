@@ -226,27 +226,29 @@ void IRIGWebServer::handleGetConfig(AsyncWebServerRequest *request) {
         return;
     }
 
-    // Create JSON response from settings
-    String json = "{";
-    json += "\"dhcp\":" + String(settings->network.dhcp ? "true" : "false") + ",";
-    json += "\"ip\":\"" + String(settings->network.ip) + "\",";
-    json += "\"subnet\":\"" + String(settings->network.subnet) + "\",";
-    json += "\"gateway\":\"" + String(settings->network.gateway) + "\",";
-    json += "\"dns\":\"" + String(settings->network.dns) + "\",";
-    json += "\"ntpServer\":\"" + String(settings->ntp.server) + "\",";
-    json += "\"ntpServer2\":\"" + String(settings->ntp.server2) + "\",";
-    json += "\"ntpPort\":" + String(settings->ntp.port) + ",";
-    json += "\"ntpPort2\":" + String(settings->ntp.port2) + ",";
-    json += "\"timeOffset\":" + String(settings->ntp.timeOffset) + ",";
-    json += "\"enabled\":" + String(settings->enabled ? "true" : "false") + ",";
-    json += "\"channel_1_mode\":" + String(settings->channel_1_mode) + ",";
-    json += "\"channel_2_mode\":" + String(settings->channel_2_mode) + ",";
-    json += "\"channel_3_mode\":" + String(settings->channel_3_mode) + ",";
-    json += "\"channel_4_mode\":" + String(settings->channel_4_mode) + ",";
-    json += "\"channel_5_mode\":" + String(settings->channel_5_mode) + ",";
-    json += "\"channel_6_mode\":" + String(settings->channel_6_mode) + ",";
-    json += "\"channel_7_mode\":" + String(settings->channel_7_mode) + ",";
-    json += "\"channel_8_mode\":" + String(settings->channel_8_mode);
+    // Create JSON response from settings - use reserve() to prevent reallocation
+    String json;
+    json.reserve(512); // Pre-allocate to reduce stack churn
+    json = "{";
+    json += "\"dhcp\":"; json += settings->network.dhcp ? "true" : "false"; json += ",";
+    json += "\"ip\":\""; json += settings->network.ip; json += "\",";
+    json += "\"subnet\":\""; json += settings->network.subnet; json += "\",";
+    json += "\"gateway\":\""; json += settings->network.gateway; json += "\",";
+    json += "\"dns\":\""; json += settings->network.dns; json += "\",";
+    json += "\"ntpServer\":\""; json += settings->ntp.server; json += "\",";
+    json += "\"ntpServer2\":\""; json += settings->ntp.server2; json += "\",";
+    json += "\"ntpPort\":"; json += String(settings->ntp.port); json += ",";
+    json += "\"ntpPort2\":"; json += String(settings->ntp.port2); json += ",";
+    json += "\"timeOffset\":"; json += String(settings->ntp.timeOffset); json += ",";
+    json += "\"enabled\":"; json += settings->enabled ? "true" : "false"; json += ",";
+    json += "\"channel_1_mode\":"; json += String(settings->channel_1_mode); json += ",";
+    json += "\"channel_2_mode\":"; json += String(settings->channel_2_mode); json += ",";
+    json += "\"channel_3_mode\":"; json += String(settings->channel_3_mode); json += ",";
+    json += "\"channel_4_mode\":"; json += String(settings->channel_4_mode); json += ",";
+    json += "\"channel_5_mode\":"; json += String(settings->channel_5_mode); json += ",";
+    json += "\"channel_6_mode\":"; json += String(settings->channel_6_mode); json += ",";
+    json += "\"channel_7_mode\":"; json += String(settings->channel_7_mode); json += ",";
+    json += "\"channel_8_mode\":"; json += String(settings->channel_8_mode);
     json += "}";
 
     request->send(200, "application/json", json);
@@ -371,28 +373,30 @@ void IRIGWebServer::handleGetConfigWebSocket(AsyncWebSocketClient *client) {
         return;
     }
 
-    // Create JSON response from settings
-    String json = "{";
+    // Create JSON response from settings - use reserve() to prevent reallocation
+    String json;
+    json.reserve(512); // Pre-allocate to reduce stack churn
+    json = "{";
     json += "\"type\":\"config\",";
-    json += "\"dhcp\":" + String(settings->network.dhcp ? "true" : "false") + ",";
-    json += "\"ip\":\"" + String(settings->network.ip) + "\",";
-    json += "\"subnet\":\"" + String(settings->network.subnet) + "\",";
-    json += "\"gateway\":\"" + String(settings->network.gateway) + "\",";
-    json += "\"dns\":\"" + String(settings->network.dns) + "\",";
-    json += "\"ntpServer\":\"" + String(settings->ntp.server) + "\",";
-    json += "\"ntpServer2\":\"" + String(settings->ntp.server2) + "\",";
-    json += "\"ntpPort\":" + String(settings->ntp.port) + ",";
-    json += "\"ntpPort2\":" + String(settings->ntp.port2) + ",";
-    json += "\"timeOffset\":" + String(settings->ntp.timeOffset) + ",";
-    json += "\"enabled\":" + String(settings->enabled ? "true" : "false") + ",";
-    json += "\"channel_1_mode\":" + String(settings->channel_1_mode) + ",";
-    json += "\"channel_2_mode\":" + String(settings->channel_2_mode) + ",";
-    json += "\"channel_3_mode\":" + String(settings->channel_3_mode) + ",";
-    json += "\"channel_4_mode\":" + String(settings->channel_4_mode) + ",";
-    json += "\"channel_5_mode\":" + String(settings->channel_5_mode) + ",";
-    json += "\"channel_6_mode\":" + String(settings->channel_6_mode) + ",";
-    json += "\"channel_7_mode\":" + String(settings->channel_7_mode) + ",";
-    json += "\"channel_8_mode\":" + String(settings->channel_8_mode);
+    json += "\"dhcp\":"; json += settings->network.dhcp ? "true" : "false"; json += ",";
+    json += "\"ip\":\""; json += settings->network.ip; json += "\",";
+    json += "\"subnet\":\""; json += settings->network.subnet; json += "\",";
+    json += "\"gateway\":\""; json += settings->network.gateway; json += "\",";
+    json += "\"dns\":\""; json += settings->network.dns; json += "\",";
+    json += "\"ntpServer\":\""; json += settings->ntp.server; json += "\",";
+    json += "\"ntpServer2\":\""; json += settings->ntp.server2; json += "\",";
+    json += "\"ntpPort\":"; json += String(settings->ntp.port); json += ",";
+    json += "\"ntpPort2\":"; json += String(settings->ntp.port2); json += ",";
+    json += "\"timeOffset\":"; json += String(settings->ntp.timeOffset); json += ",";
+    json += "\"enabled\":"; json += settings->enabled ? "true" : "false"; json += ",";
+    json += "\"channel_1_mode\":"; json += String(settings->channel_1_mode); json += ",";
+    json += "\"channel_2_mode\":"; json += String(settings->channel_2_mode); json += ",";
+    json += "\"channel_3_mode\":"; json += String(settings->channel_3_mode); json += ",";
+    json += "\"channel_4_mode\":"; json += String(settings->channel_4_mode); json += ",";
+    json += "\"channel_5_mode\":"; json += String(settings->channel_5_mode); json += ",";
+    json += "\"channel_6_mode\":"; json += String(settings->channel_6_mode); json += ",";
+    json += "\"channel_7_mode\":"; json += String(settings->channel_7_mode); json += ",";
+    json += "\"channel_8_mode\":"; json += String(settings->channel_8_mode);
     json += "}";
 
     client->text(json);

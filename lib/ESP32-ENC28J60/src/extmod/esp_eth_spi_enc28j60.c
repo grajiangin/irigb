@@ -20,6 +20,7 @@ esp_eth_mac_t* enc28j60_new_mac( spi_device_handle_t *spi_handle, int INT_GPIO )
     eth_mac_config_t mac_config = ETH_MAC_DEFAULT_CONFIG();
     mac_config.smi_mdc_gpio_num  = -1; // ENC28J60 doesn't have SMI interface
     mac_config.smi_mdio_gpio_num = -1;
+    mac_config.rx_task_stack_size = 8192; // Increase from default (typically 2048-4096) to prevent stack overflow
     // mac_config.rx_task_prio      = 1;
     return esp_eth_mac_new_enc28j60( &enc28j60_config, &mac_config );
 }
