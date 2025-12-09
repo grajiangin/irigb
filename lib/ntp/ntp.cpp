@@ -226,5 +226,5 @@ void init_ntp() {
     }
     Serial.printf("NTP Time Offset: %d hours\n", _timeOffset);
     ntp_begin();
-    ntp_setUpdateInterval(5000);
+    ntp_setUpdateInterval(60000);
 }
