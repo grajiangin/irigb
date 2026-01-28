@@ -109,7 +109,7 @@ bool ntp_update() {
         
         // Check if ethernet link is up before attempting NTP request
         if (!eth_link_up()) {
-            // Serial.println("NTP: Skipping update, ethernet link is down");
+            ntp_ok = false;
             return false;
         }
         
