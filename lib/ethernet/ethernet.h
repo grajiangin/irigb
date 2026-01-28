@@ -2,24 +2,17 @@
 #define ETHERNET_H
 // Ethernet pins
 
-
-// SPI configuration for ENC28J60
+// SPI configuration for W5500
 
 #include <Arduino.h>
-#include <WiFi.h>
-#include <ESP32-ENC28J60.h>
-#include "driver/spi_master.h"
 #include "settings.h"
 
-
-#define SPI_CLOCK_MHZ 8  // Minimum 8MHz for ENC28J60 revision B5+
-#define SPI_HOST SPI2_HOST 
+#define SPI_CLOCK_MHZ 12  // W5500 SPI clock speed (12MHz for stability)
 #define ETH_MOSI 39
 #define ETH_MISO 37
 #define ETH_SCLK 41
 #define ETH_CS 38
 #define ETH_INT 36
-#define ETH_CLK_OUT 35
 #define ETH_RST 40
 
 // New modular functions
@@ -30,6 +23,13 @@ bool eth_configure_network(Settings* settings);
 bool eth_status();
 bool eth_link_up();  // Helper function to get current link status
 void eth_update_link_status();
+
+// Get IP address
+IPAddress eth_local_ip();
+IPAddress eth_subnet_mask();
+IPAddress eth_gateway_ip();
+IPAddress eth_dns_ip();
+String eth_mac_address();
 
 // Ethernet monitoring task functions
 bool eth_start_monitoring(Settings* settings);

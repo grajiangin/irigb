@@ -78,7 +78,7 @@ void IRIGWebServer::start() {
     server->begin();
     running = true;
     Serial.printf("Web server started on port %d\n", port);
-    Serial.printf("Server address: http://%s\n", ETH.localIP().toString().c_str());
+    Serial.printf("Server address: http://%s\n", eth_local_ip().toString().c_str());
 }
 
 void IRIGWebServer::stop() {
@@ -203,7 +203,7 @@ void IRIGWebServer::handleRoot(AsyncWebServerRequest *request) {
     String html = "<!DOCTYPE html><html><head><title>IRIG-B Server</title></head>";
     html += "<body><h1>IRIG-B Time Server</h1>";
     html += "<p>Server is running but no index.html found in filesystem.</p>";
-    html += "<p>IP Address: " + ETH.localIP().toString() + "</p>";
+    html += "<p>IP Address: " + eth_local_ip().toString() + "</p>";
     html += "<p>Check serial output for filesystem status.</p>";
     html += "</body></html>";
 
