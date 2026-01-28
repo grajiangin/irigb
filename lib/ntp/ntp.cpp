@@ -104,14 +104,12 @@ bool ntp_forceUpdate(unsigned int serverPort) {
 }
 
 bool ntp_update() {
-    if ((millis() - _lastUpdate >= _updateInterval)     // Update after _updateInterval
-        || _lastUpdate == 0) {
-        
-        // Check if ethernet link is up before attempting NTP request
-        if (!eth_link_up()) {
-            ntp_ok = false;
-            return false;
-        }
+       // Check if ethernet link is up before attempting NTP request
+    if (!eth_link_up()) {
+        ntp_ok = false;
+        return false;
+    }
+    if ((millis() - _lastUpdate >= _updateInterval) || _lastUpdate == 0) {
         
         _timeOffset=settings.ntp.timeOffset;
         _port=settings.ntp.port;
