@@ -108,10 +108,9 @@ void IRIGB::setCurrentTime(const IrigTime &time)
 
 void IRIGB::encodeTimeIntoBits(const IrigTime &time, int timeOffsetHours)
 {
-  if(use_buffer_0) this->encodeTimeIntoBits(time,this->bits_1, timeOffsetHours);
-  else this->encodeTimeIntoBits(time,this->bits_0, timeOffsetHours);
-
-  //for(int a=0;a<100;a++) bits[a]=use_buffer_0?bits_1[a]:bits_0[a];
+  bool current = use_buffer_0; // snapshot before ISR can flip it
+  if (current) this->encodeTimeIntoBits(time, this->bits_1, timeOffsetHours);
+  else         this->encodeTimeIntoBits(time, this->bits_0, timeOffsetHours);
 }
 
 void IRIGB::encodeTimeIntoBits(const IrigTime &time, bool *bits, int timeOffsetHours)

@@ -18,17 +18,18 @@ hw_timer_t *timer = NULL;
 
 bool sec_blink = false;
 uint32_t last_blink = 0;
+unsigned long last_evaluate = 0;
 uint32_t last_ntp_update = 0;
 bool ntp_got_data = false;
 Display display(DISP_DATA, DISP_CLK, DISP_STB);
 IRIGWebServer webServer;
 Settings settings;
 bool wclk_state = false;
-bool irig_available = false;
+volatile bool irig_available = false;
 bool irig_enabled = false;
-bool ntp_valid = false;
+volatile bool ntp_valid = false;
 extern bool eth_reinit_flag;
-extern bool ntp_ok;
+extern volatile bool ntp_ok;
 
 IRIGB irigb1(P1);
 IRIGB irigb2(P2);
@@ -84,29 +85,13 @@ void init_pins()
 
 void ntp_task(void *param)
 {
-  unsigned long last_evaluate =millis();
   unsigned long last_debug =millis();
-  uint8_t restart_counter=0;
   for (;;)
   {
-
     if(millis()-last_debug>1000)
     {
       Serial.printf("NTP counter: %i\n",ntp_counter());
       last_debug=millis();
-    }
-    if(millis()-last_evaluate>60000*5) //1 minute 
-    {
-      last_evaluate=millis();
-      if(ntp_counter()==0)
-      {
-        esp_restart();
-      }
-      else 
-      {
-        restart_counter=0;
-      }
-      ntp_reset_counter();
     }
 
     if (ntp_update())
@@ -143,7 +128,8 @@ void ntp_task(void *param)
 void setup()
 {
   Serial.begin(115200);
-  
+  WiFi.mode(WIFI_OFF); // disable WiFi radio, network runs over W5500 Ethernet
+
   init_pins();
   delay(1000);
   irigb1.begin();
@@ -206,7 +192,7 @@ void setup()
   xTaskCreate(
       ntp_task,
       "ntp_task", // Task name
-      4096*2,       // Stack size
+      4096*4,       // Stack size
       nullptr,    // Parameter
       1,          // Priority
       nullptr     // Task handle
@@ -219,6 +205,10 @@ void setup()
 
 void loop()
 {
+  // uint32_t freeHeap = esp_get_free_heap_size();
+  // uint32_t totalHeap = ESP.getHeapSize();
+  // Serial.printf("[HEAP] Free: %u bytes (%.2f%%)\n", freeHeap, (freeHeap * 100.0f) / totalHeap);
+
   NTPTime time = ntp_get_time();
   webServer.sendTimeUpdate(time.hour, time.minute, time.second, time.day);
   irig_enabled = settings.enabled;
@@ -246,6 +236,16 @@ void loop()
   display.set_ntp_led(ntp_ok && sec_blink);
   display.display();
   delay(300);
+  if (millis() - last_evaluate > 60000 * 5)
+  {
+    last_evaluate = millis();
+    if (ntp_counter() == 0)
+    {
+      Serial.println("[WDT] No NTP data for 5 minutes, restarting...");
+      esp_restart();
+    }
+    ntp_reset_counter();
+  }
   if (millis() - last_blink > 500)
   {
     last_blink = millis();

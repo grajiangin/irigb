@@ -19,7 +19,7 @@ unsigned long _currentMilliseconds = 0;
 byte _packetBuffer[NTP_PACKET_SIZE];
 extern Settings settings;
 int _ntp_counter=0;
-bool ntp_ok=false;
+volatile bool ntp_ok=false;
 
 int ntp_counter(){
     return _ntp_counter;
@@ -54,6 +54,10 @@ void ntp_begin() {
 }
 
 void ntp_begin(unsigned int port) {
+    if (_udpSetup) {
+        ntpUDP->stop();
+        _udpSetup = false;
+    }
     _port = port;
     ntpUDP->begin(_port);
     _udpSetup = true;
@@ -191,7 +195,7 @@ NTPTime ntp_get_time() {
     int year = 1970;
     int dayOfYear = 0;
 
-    while (daysSinceEpoch > 0) {
+    while (true) {
         int isLeapYear = (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
         unsigned long daysInYear = isLeapYear ? 366 : 365;
 

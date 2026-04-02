@@ -333,6 +333,7 @@ void IRIGWebServer::sendTimeUpdate(int hour, int minute, int second, int day) {
     timeData += "\"day\":" + String(day);
     timeData += "}";
 
+    ws->cleanupClients();
     ws->textAll(timeData);
 }
 

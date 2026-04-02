@@ -83,7 +83,7 @@ public:
   bool bits[100];
   bool bits_0[100];
   bool bits_1[100];
-  bool use_buffer_0=true;
+  volatile bool use_buffer_0=true;
   uint8_t state=0;
   uint8_t bit_counter_marker=0;
    
